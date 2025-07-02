@@ -1,6 +1,9 @@
 package io.github.gdpl2112.controller;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import io.github.gdpl2112.config.BindConfig;
+import io.github.gdpl2112.funs.UserProfile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,15 +45,25 @@ public class BindController {
         return ResponseEntity.ok(msg);
     }
 
+    @Autowired
+    UserProfile userProfile;
+
     @RequestMapping("/get")
     public ResponseEntity<String> get(@RequestParam(name = "sid") String sid) {
-        StringBuilder sb = new StringBuilder("已绑定UID:\n");
+        StringBuilder sb = new StringBuilder("已绑定UID:\n==========");
         List<String> uids = bindConfig.getBinds(sid);
         if (uids != null) {
             for (String uid : uids) {
-                sb.append(uid).append("\n");
+                sb.append("\n").append(uid).append("--> ");
+                UserProfile.UserRoleResult userRoleResult = userProfile.getUserRole(uid);
+                JSONObject data = userRoleResult.getData().get(0);
+                JSONArray arr = data.getJSONArray("roleText");
+                sb.append(arr.get(0)).append("--");
+                sb.append(arr.get(1)).append("--");
+                sb.append(arr.get(2));
+                sb.append("\n==========");
             }
-            return ResponseEntity.ok(sb.toString());
+            return ResponseEntity.ok(sb.toString().trim());
         } else return ResponseEntity.ok("未绑定UID");
     }
 
