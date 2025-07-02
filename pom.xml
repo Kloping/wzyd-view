@@ -54,9 +54,27 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>org.graalvm.buildtools</groupId>
-                <artifactId>native-maven-plugin</artifactId>
-                <version>0.10.6</version>
+                <!--                <groupId>org.graalvm.buildtools</groupId>-->
+                <!--                <artifactId>native-maven-plugin</artifactId>-->
+                <!--                <version>0.10.6</version>-->
+                <groupId>org.graalvm.nativeimage</groupId>
+                <artifactId>native-image-maven-plugin</artifactId>
+                <version>20.3.16</version>
+                <configuration>
+                    <imageName>wzyd-server</imageName>
+                    <mainClass>io.github.gdpl2112.WzryDpApplication</mainClass>
+                    <buildArgs>
+                        <buildArg>
+                            --initialize-at-build-time=java.awt.Toolkit
+                            -H:ReflectionConfigurationFiles=src/main/resources/reflect-config.json
+                            -H:JNIConfigurationFiles=src/main/resources/jni-config.json
+                            -H:+JNI
+                            -H:EnableURLProtocols=http
+                            -H:EnableURLProtocols=https
+                            -H:IncludeResources=".*\\.(dll|so|dylib)$"
+                        </buildArg>
+                    </buildArgs>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -1,0 +1,17 @@
+[
+  {
+    "name": "java.awt.Toolkit",
+    "methods": [
+      { "name": "getDefaultToolkit", "parameterTypes": [] }
+    ]
+  },
+  {
+    "name": "java.awt.Color",
+    "fields": [
+      { "name": "ORANGE" },
+      { "name": "RED" },
+      { "name": "WHITE" },
+      { "name": "BLACK" }
+    ]
+  }
+]

@@ -217,14 +217,14 @@ public class BattleController {
                     bgr.drawRect(636, 10, 40, 100);
 
                     bgr.setFont(FONT_26);
-                    bgr.setColor(Color.orange);
+                    bgr.setColor(Color.ORANGE);
                     for (int ie0 = 0; ie0 < desc.length(); ie0++) {
                         char e0 = desc.charAt(ie0);
                         bgr.drawString(String.valueOf(e0), 643, 38 + (ie0 * 30));
                     }
                 }
                 bgr.setFont(FONT_26);
-                bgr.setColor(Color.red);
+                bgr.setColor(Color.RED);
                 bgr.drawString(battle.getString("gradeGame"), 690, 82);
                 bgr.setFont(FONT_18);
                 bgr.setColor(Color.BLACK);

@@ -1,0 +1,8 @@
+[
+  {
+    "name": "java.awt.Toolkit",
+    "methods": [
+      {"name": "initIDs", "parameterTypes": [] }
+    ]
+  }
+]
