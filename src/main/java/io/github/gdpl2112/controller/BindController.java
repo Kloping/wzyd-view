@@ -50,18 +50,17 @@ public class BindController {
 
     @RequestMapping("/get")
     public ResponseEntity<String> get(@RequestParam(name = "sid") String sid) {
-        StringBuilder sb = new StringBuilder("已绑定UID:\n==========");
+        StringBuilder sb = new StringBuilder("已绑定UID:");
         List<String> uids = bindConfig.getBinds(sid);
         if (uids != null) {
             for (String uid : uids) {
-                sb.append("\n").append(uid).append("--> ");
+                sb.append("\n--------\n").append(uid).append("->");
                 UserProfile.UserRoleResult userRoleResult = userProfile.getUserRole(uid);
                 JSONObject data = userRoleResult.getData().get(0);
                 JSONArray arr = data.getJSONArray("roleText");
-                sb.append(arr.get(0)).append("--");
-                sb.append(arr.get(1)).append("--");
+                sb.append(arr.get(0)).append("\n");
+                sb.append(arr.get(1)).append("->");
                 sb.append(arr.get(2));
-                sb.append("\n==========");
             }
             return ResponseEntity.ok(sb.toString().trim());
         } else return ResponseEntity.ok("未绑定UID");
