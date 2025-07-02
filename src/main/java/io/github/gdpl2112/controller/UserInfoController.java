@@ -205,25 +205,24 @@ public class UserInfoController {
                         String honor_bg_img_url = getHonorBgImgUrl(honorType);
                         File honor_bg_img_file = iconDir.saveIfNotExist(honor_bg_img_url, "honor-bg-" + honorType + ".png");
                         BufferedImage honor_bg_img = ImageIO.read(honor_bg_img_file);
-                        char2d.drawImage(honor_bg_img, 260, 35, null);
+                        char2d.drawImage(honor_bg_img, 260, 35, 64, 64, null);
 
                         String honor_img_url = getHonorImgUrl(honorType);
                         File honor_img_file = iconDir.saveIfNotExist(honor_img_url, "honor-" + honorType + ".png");
                         BufferedImage honor_img = ImageIO.read(honor_img_file);
-                        char2d.drawImage(honor_img, 260, 31, null);
+                        char2d.drawImage(honor_img, 260, 31, 64, 52, null);
 
-                        char2d.setColor(getFightColor(heroFightPower));
                         tw = honor.getJSONObject("desc").getString("abbr");
-                        if (char_name.length() >= 4) {
-                            char2d.drawRoundRect(594, 52, 910, 95, 20, 20);
-                            char2d.setColor(Color.WHITE);
-                            char2d.setFont(FONT_36);
-                            char2d.drawString(tw, 753, 75);
-                        } else {
-                            char2d.drawRoundRect(646, 52, 910, 95, 20, 20);
-                            char2d.setColor(Color.WHITE);
-                            char2d.drawString(tw, 778, 75);
-                        }
+                        int tww = char2d.getFontMetrics().stringWidth(tw);
+                        int nwx = 920 - tww;
+
+                        char2d.setFont(FONT_36);
+                        char2d.setColor(COLOR_AW);
+                        char2d.fillRoundRect(nwx - 15, 30, tww - 30, 60, 20, 20);
+
+                        char2d.setFont(FONT_40);
+                        char2d.setColor(getFightColor(heroFightPower));
+                        char2d.drawString(tw, nwx - 10, 75);
                     }
                     char2d.dispose();
                     g2d.drawImage(char_img, 0, 880 + i * 250, null);
@@ -240,6 +239,8 @@ public class UserInfoController {
         }
         return null;
     }
+
+    public static final Color COLOR_AW = new Color(255, 255, 255, 64);
 
     public static final Color LEVEL_2500 = new Color(47, 47, 47);
     public static final Color LEVEL_5000 = new Color(69, 110, 232);
