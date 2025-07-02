@@ -190,8 +190,10 @@ public class BattleController {
 
                 hero_path = avatarDir.saveIfNotExist(icon_path, hero_path.getName());
                 BufferedImage hero_img = ImageIO.read(hero_path);
-                if (hero_img.getHeight() > hero_img.getWidth())
-                    hero_img = hero_img.getSubimage(0, 0, 180, 180);
+                if (hero_img.getHeight() > hero_img.getWidth()){
+                    int w = hero_img.getWidth();
+                    hero_img = hero_img.getSubimage(0, 0, w, w);
+                }
                 hero_img = BufferedImageUtils.image2size(100, 100, hero_img);
                 hero_img = BufferedImageUtils.cropToRoundedCorner(hero_img, 100);
                 bgr.drawImage(hero_img, 79, 9, hero_mask.getWidth(), hero_mask.getHeight(), null);
