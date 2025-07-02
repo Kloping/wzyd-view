@@ -214,7 +214,7 @@ public class UserInfoController {
 
                         tw = honor.getJSONObject("desc").getString("abbr");
                         int tww = char2d.getFontMetrics().stringWidth(tw);
-                        int nwx = 920 - tww;
+                        int nwx = 955 - tww;
 
                         char2d.setFont(FONT_36);
                         char2d.setColor(COLOR_AW);
