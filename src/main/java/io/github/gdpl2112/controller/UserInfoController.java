@@ -7,6 +7,7 @@ import io.github.gdpl2112.config.BindConfig;
 import io.github.gdpl2112.config.ResConfig;
 import io.github.gdpl2112.funs.UserProfile;
 import io.github.gdpl2112.utils.BufferedImageUtils;
+import io.github.gdpl2112.utils.NameUtils;
 import io.github.kloping.judge.Judge;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -93,25 +94,28 @@ public class UserInfoController {
             int x = 596, y = -80;
 
             String flag_url = roleCard.getString("flagImg");
-            File file = iconDir.saveIfNotExist(flag_url, "roleCard.FlagImg.png");
+            File file = iconDir.saveIfNotExist(flag_url, NameUtils.getNameByUrl(flag_url));
             BufferedImage flag_img = ImageIO.read(file);
             g2d.drawImage(flag_img, x, y, null);
 
 
             String role_job_url = roleCard.getString("roleJobIcon");
-            File role_job_file = iconDir.saveIfNotExist(role_job_url, "roleCard.RoleJobIcon.png");
+            File role_job_file = iconDir.saveIfNotExist(role_job_url, NameUtils.getNameByUrl(role_job_url));
             BufferedImage role_job_img = ImageIO.read(role_job_file);
-            g2d.drawImage(role_job_img, 548, y + 150, 450, 450, null);
+            g2d.drawImage(role_job_img, 539, y + 150, 450, 450, null);
 
 
             String star_img_url = roleCard.getString("starImg");
             if (Judge.isNotEmpty(star_img_url)) {
-                File star_img_file = iconDir.saveIfNotExist(star_img_url, "roleCard.StarImg.png");
+                File star_img_file = iconDir.saveIfNotExist(star_img_url, NameUtils.getNameByUrl(star_img_url));
                 BufferedImage star_img = ImageIO.read(star_img_file);
-                g2d.drawImage(star_img, x + 75, y + 145, 430, 430, null);
+                g2d.drawImage(star_img, x + 55, y + 125, (int) (188 * 1.2), (int) (68 * 1.2), null);
             }
 
             y = 445;
+
+            JSONObject headData = profileIndexData.getData().getJSONObject("head");
+            JSONArray profile_mods = headData.getJSONArray("mods");
 
             BufferedImage lstar_img = ImageIO.read(resConfig.getResourceBytes(INFO_PATH, "star.png"));
             g2d.drawImage(lstar_img, x + 120, y + 15, null);
@@ -120,18 +124,16 @@ public class UserInfoController {
             g2d.setFont(FONT_40);
             g2d.drawString("x" + roleCard.getIntValue("rankingStar"), x + 165, y + 50);
 
-            JSONObject headData = profileIndexData.getData().getJSONObject("head");
-            JSONArray profile_mods = headData.getJSONArray("mods");
             JSONObject pinnacleData = profile_mods.getJSONObject(2);
             y = 340;
             String pinnacle_job_url = pinnacleData.getString("icon");
-            File pinnacle_job_file = iconDir.saveIfNotExist(pinnacle_job_url, "indexHeadPinnacle.png");
+            File pinnacle_job_file = iconDir.saveIfNotExist(pinnacle_job_url, NameUtils.getNameByUrl(pinnacle_job_url));
             BufferedImage pinnacle_job_img = ImageIO.read(pinnacle_job_file);
-            g2d.drawImage(pinnacle_job_img, x - 65, y + 100, 460, 460, null);
+            g2d.drawImage(pinnacle_job_img, x - 65, y + 120, 460, 460, null);
             g2d.setColor(new Color(224, 195, 100));
             g2d.setFont(FONT_36);
             tw = pinnacleData.getString("content");
-            g2d.drawString(tw, x + 163 - g2d.getFontMetrics().stringWidth(tw) / 2, y + 300);
+            g2d.drawString(tw, x + 163 - g2d.getFontMetrics().stringWidth(tw) / 2, y + 320);
 
             // # 总体资料
             int index0 = 3;
