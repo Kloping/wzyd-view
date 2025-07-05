@@ -108,7 +108,6 @@ public class BindConfig {
                 binMap.put(sid, String.join("_", uids));
                 jdata.put("bind", binMap);
                 flushJdata();
-                return "切换绑定成功";
             } else return "未绑定该UID";
         } else {
             //把最后一个切换到最前
@@ -117,8 +116,8 @@ public class BindConfig {
             binMap.put(sid, String.join("_", uids));
             jdata.put("bind", binMap);
             flushJdata();
-            return "切换绑定成功";
         }
+        return "切换绑定成功;当前UID:" + uid;
     }
 
     private void flushJdata() {
