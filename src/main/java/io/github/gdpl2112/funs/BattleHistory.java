@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import io.github.gdpl2112.HttpApi;
 import io.github.gdpl2112.dto.DataList;
+import io.github.gdpl2112.dto.DataZjList;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * {"option":0,"friendRoleId":"1662968996","isMultiGame":1,"apiVersion":5,"lastTime":0,"recommendPrivacy":0,"friendUserId":"534469328"}
@@ -32,34 +34,14 @@ public class BattleHistory {
         private DataList data;
     }
 
-    //     "result": 0,
-//  "returnCode": 0,
-//  "returnMsg": "",
-//  "data": {
-//    "head": {
-//      "gameResult": true,
-//      "acntCamp": 1,
-//      "mapName": "无限乱斗",
-//      "gradeGame": "7.2",
-//      "kda": "17.25",
-//      "labels": [],
-//      "killCnt": 1,
-//      "deadCnt": 2,
-//      "assistCnt": 22,
-//      "roleId": "321970740",
-//      "roleIcon": "https://thirdqq.qlogo.cn/ek_qqapp/AQKMakB5Xm7XkWssUb5LcBlwVUhSPB4uD7gPZSPeIkObpFsAticV1xaM14h7Tibj5CsVsZduHSJQGeQQuiaClibwahVaQrl9NmrZOBibiaXDlOWLpZsgZ3ANgiblPxmWahdlw/100",
-//      "roleName": "唯爱小祁呆猫",
-//      "bgImg": "https://game-1255653016.file.myqcloud.com/manage/custom_wzry_D1/2d62bed9f28785d89ae6303d462034d0.png",
-//      "teamNum": 2,
-//      "matchDesc": "",
-//      "tips": "这局你能扛能打，真滴猛😱",
-//      "userId": "94113009",
-//      "heroId": 175,
-//      "heroName": "钟馗",
-//      "playerId": "6616182426531185405",
-//      "is10v10": false
-//    },
-//
+    @Data
+    @Accessors(chain = true)
+    public static class BattleOneResult {
+        private Integer returnCode = 0;
+        private String returnMsg;
+        private DataZjList data;
+    }
+
     @Data
     @Accessors(chain = true)
     public static class BattleDetailResult {
@@ -125,6 +107,7 @@ public class BattleHistory {
             """;
 
     public BattleDetailResult getBattleDetail(String battleType, String gameSvr, String relaySvr, String wz_user_id, String gameSeq) {
+        log.info("getBattleDetail: {}-{}", wz_user_id, gameSeq);
         Connection.Response response = null;
         try {
             response = Jsoup.connect(HttpApi.BATTLE_DETAIL)
@@ -139,5 +122,27 @@ public class BattleHistory {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static final String ONE_HERO_DATA_FORMAT = """
+            {"heroid": "%s", "lastTime": %s, "roleId": "%s", "recommendPrivacy": 0}
+            """;
+
+    public BattleOneResult getBattleOneHistory(Integer serverId, String roleId, Integer heroId, Integer lt) {
+        Connection.Response response = null;
+        log.info("getBattleOneHistory: {} {} {} {}", serverId, roleId, heroId, lt);
+        try {
+            Map<String, String> headers = api.getRequestHeaders();
+            headers.put("serverId", serverId.toString());
+            headers.put("gameServerId", serverId.toString());
+            response = Jsoup.connect(HttpApi.HERO_HISTORY).ignoreHttpErrors(true).ignoreContentType(true)
+                    .headers(headers)
+                    .method(Connection.Method.POST)
+                    .requestBody(String.format(ONE_HERO_DATA_FORMAT, heroId, lt, roleId))
+                    .execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return JSON.parseObject(response.body(), BattleOneResult.class);
     }
 }

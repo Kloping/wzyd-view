@@ -58,10 +58,10 @@ public class UserInfoController {
 
         String roleId = rData.getString("roleId");
         UserProfile.UserProfileResult profileData = userProfile.getUserProfile(uid, roleId);
-        if (profileData.getReturnCode() < 0)
+        if (profileData.getReturnCode() != 0)
             return ResponseEntity.badRequest().body(profileData.getReturnMsg());
         UserProfile.UserProfileResult profileIndexData = userProfile.getUserProfileIndex(uid, roleId);
-        if (profileIndexData.getReturnCode() < 0)
+        if (profileIndexData.getReturnCode() != 0)
             return ResponseEntity.badRequest().body(profileIndexData.getReturnMsg());
 
         try {

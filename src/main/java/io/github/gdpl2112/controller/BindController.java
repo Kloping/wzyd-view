@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -48,6 +50,8 @@ public class BindController {
     @Autowired
     UserProfile userProfile;
 
+    private static final SimpleDateFormat SF_0 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+
     @RequestMapping("/get")
     public ResponseEntity<String> get(@RequestParam(name = "sid") String sid) {
         StringBuilder sb = new StringBuilder("已绑定UID:");
@@ -59,8 +63,12 @@ public class BindController {
                 JSONObject data = userRoleResult.getData().get(0);
                 JSONArray arr = data.getJSONArray("roleText");
                 sb.append(arr.get(0)).append("\n");
-                sb.append(arr.get(1)).append("->");
+                sb.append(arr.get(1)).append("->").append(data.getString("roleName")).append(" ");
                 sb.append(arr.get(2));
+                long lu = data.getLongValue("lu") * 1000;
+                sb.append("\n营地最近在线: ").append(SF_0.format(new Date(lu)));
+                long z = data.getLongValue("z") * 1000;
+                sb.append("\n游戏最近在线: ").append(SF_0.format(new Date(z)));
             }
             return ResponseEntity.ok(sb.toString().trim());
         } else return ResponseEntity.ok("未绑定UID");
