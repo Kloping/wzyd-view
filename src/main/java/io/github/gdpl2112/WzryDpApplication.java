@@ -9,7 +9,6 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 public class WzryDpApplication {
     public static void main(String[] args) {
-        System.setProperty("java.awt.headless", "true"); // 关闭 GUI 支持
         SpringApplication.run(WzryDpApplication.class, args);
     }
 
