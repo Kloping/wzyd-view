@@ -75,7 +75,7 @@ public class BattleController {
             Integer optn = filterToOpt(opt);
 
             UserProfile.UserRoleResult userRoleResult = userRoleFuns.getUserRole(uid);
-            if (userRoleResult.getReturnCode() != 0) {
+            if ( userRoleResult.getReturnCode() != 0) {
                 return ResponseEntity.badRequest().body(userRoleResult.getReturnMsg());
             }
             JSONObject rData = userRoleResult.getData().get(0);
@@ -102,13 +102,13 @@ public class BattleController {
                 }
             }
             String game_text;
-            int online = rData.getIntValue("online");
-            if (online == 0) {
-                int appOnline = rData.getIntValue("gameOnline");
-                if (appOnline == 0) game_text = "离线";
-                else game_text = "游戏在线";
+            int online = rData.getIntValue("gameOnline");
+            if (online > 0) {
+                game_text = "游戏在线";
             } else {
-                game_text = "营地在线";
+                int appOnline = rData.getIntValue("appOnline");
+                if (appOnline == 0) game_text = "离线";
+                else game_text = "营地在线";
             }
 
             BufferedImage bg = ImageIO.read(resConfig.getResourceBytes("bg"));

@@ -65,6 +65,7 @@ public class BindController {
                 sb.append(arr.get(0)).append("\n");
                 sb.append(arr.get(1)).append("->").append(data.getString("roleName")).append(" ");
                 sb.append(arr.get(2));
+                sb.append("\n当前游戏: ").append(data.getIntValue("gameOnline") > 0 ? "\uD83D\uDFE2在线" : "⚪离线");
                 long lu = data.getLongValue("lu") * 1000;
                 sb.append("\n营地最近在线: ").append(SF_0.format(new Date(lu)));
                 long z = data.getLongValue("z") * 1000;
