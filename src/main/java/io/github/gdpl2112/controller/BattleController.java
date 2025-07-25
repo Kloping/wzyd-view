@@ -24,8 +24,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author github kloping
@@ -52,30 +54,40 @@ public class BattleController {
     public static final Color WIN_COLOR = new Color(66, 183, 255);
     public static final Color LOSE_COLOR = new Color(255, 66, 66);
 
+    private Map.Entry<String, BufferedImage> upEntry = null;
+
     /**
      * @param sid 要查询的ID
      * @param opt 选项 排位..巅峰..
      * @return
      */
     @RequestMapping("/history")
-    public Object history(
+    public synchronized Object history(
             @RequestParam(name = "sid") String sid,
             @RequestParam(name = "opt", required = false, defaultValue = "") String opt,
             @RequestParam(name = "uid", required = false, defaultValue = "") String uid,
             HttpServletResponse response
     ) {
         try {
+
             if (Judge.isEmpty(uid)) {
                 uid = bindConfig.getBind(sid);
             }
             if (Judge.isEmpty(uid)) {
                 return ResponseEntity.badRequest().body("未绑定UID");
             }
-            log.info("==========start select battle history: {}=======", sid);
+            if (upEntry != null && upEntry.getKey().equalsIgnoreCase(uid + opt)) {
+                log.info("using cacheing");
+                response.setContentType("image/png");
+                ImageIO.write(upEntry.getValue(), "png", response.getOutputStream());
+                log.info("using cacheing write over");
+                return null;
+            }
+            log.info("start select battle history: {}", sid);
             Integer optn = filterToOpt(opt);
 
             UserProfile.UserRoleResult userRoleResult = userRoleFuns.getUserRole(uid);
-            if ( userRoleResult.getReturnCode() != 0) {
+            if (userRoleResult.getReturnCode() != 0) {
                 return ResponseEntity.badRequest().body(userRoleResult.getReturnMsg());
             }
             JSONObject rData = userRoleResult.getData().get(0);
@@ -159,7 +171,8 @@ public class BattleController {
 
             response.setContentType("image/png");
             ImageIO.write(bg, "png", response.getOutputStream());
-            log.info("==========end select battle list==========");
+            upEntry = new AbstractMap.SimpleEntry<>(uid + opt, bg);
+            log.info("end select battle list");
             return null;
         } catch (IOException e) {
             log.error("getBattleHistoryError: {}", e.getMessage());

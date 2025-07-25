@@ -2,7 +2,6 @@ package io.github.gdpl2112.controller;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import io.github.gdpl2112.HttpApi;
 import io.github.gdpl2112.config.BindConfig;
 import io.github.gdpl2112.config.ResConfig;
 import io.github.gdpl2112.funs.UserProfile;
@@ -23,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Map;
 
 /**
  * @author github kloping
@@ -36,20 +36,33 @@ public class UserInfoController {
     @Autowired
     ResConfig resConfig;
     @Autowired
-    HttpApi httpApi;
-    @Autowired
     BindConfig bindConfig;
     @Autowired
     UserProfile userProfile;
 
+    private Map.Entry<String, BufferedImage> upEntry = null;
+
     @RequestMapping("/")
-    public ResponseEntity<String> getUserInfo(
+    public synchronized ResponseEntity<String> getUserInfo(
             @RequestParam(name = "sid") String sid
             , @RequestParam(name = "uid", required = false, defaultValue = "") String uid
             , HttpServletResponse response
     ) {
         if (Judge.isEmpty(uid)) {
             uid = bindConfig.getBind(sid);
+        }
+        if (Judge.isEmpty(uid)) {
+            return ResponseEntity.badRequest().body("未绑定UID");
+        }
+        if (upEntry != null && upEntry.getKey().equals(uid)) {
+            try {
+                log.info("using cache");
+                response.setContentType("image/png");
+                ImageIO.write(upEntry.getValue(), "png", response.getOutputStream());
+                return null;
+            } catch (IOException e) {
+                log.error("using cache: {}", e.getMessage(), e);
+            }
         }
         UserProfile.UserRoleResult userRoleResult = userProfile.getUserRole(uid);
         if (userRoleResult.getReturnCode() < 0)

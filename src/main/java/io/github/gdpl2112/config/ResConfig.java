@@ -1,9 +1,7 @@
 package io.github.gdpl2112.config;
 
-import io.github.kloping.file.FileUtils;
 import io.github.kloping.rand.RandomUtils;
 import io.github.kloping.url.UrlUtils;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -19,10 +17,7 @@ import java.io.IOException;
 @Slf4j
 @Component
 public class ResConfig {
-    @Data
-    public static class Dir {
-        private final String path;
-
+    public record Dir(String path) {
         public File getFile(String name) {
             return new File(path + "/" + name);
         }
