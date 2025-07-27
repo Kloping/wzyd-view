@@ -9,7 +9,9 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 public class WzryDpApplication {
     public static void main(String[] args) {
+        System.out.println("WzydView v1.0 pre start");
         SpringApplication.run(WzryDpApplication.class, args);
+        System.out.println("WzydView v1.0 started successful!");
     }
 
     @Bean

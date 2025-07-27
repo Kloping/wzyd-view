@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author github kloping
@@ -39,9 +41,6 @@ public class UserInfoController {
     BindConfig bindConfig;
     @Autowired
     UserProfile userProfile;
-
-    private Map.Entry<String, BufferedImage> upEntry = null;
-
     @RequestMapping("/")
     public synchronized ResponseEntity<String> getUserInfo(
             @RequestParam(name = "sid") String sid
@@ -54,16 +53,7 @@ public class UserInfoController {
         if (Judge.isEmpty(uid)) {
             return ResponseEntity.badRequest().body("未绑定UID");
         }
-        if (upEntry != null && upEntry.getKey().equals(uid)) {
-            try {
-                log.info("using cache");
-                response.setContentType("image/png");
-                ImageIO.write(upEntry.getValue(), "png", response.getOutputStream());
-                return null;
-            } catch (IOException e) {
-                log.error("using cache: {}", e.getMessage(), e);
-            }
-        }
+
         UserProfile.UserRoleResult userRoleResult = userProfile.getUserRole(uid);
         if (userRoleResult.getReturnCode() < 0)
             return ResponseEntity.badRequest().body(userRoleResult.getReturnMsg());
@@ -248,7 +238,6 @@ public class UserInfoController {
 
             response.setContentType("image/png");
             ImageIO.write(bg, "png", response.getOutputStream());
-
         } catch (IOException e) {
             log.error("getUserProfileError: {}", e.getMessage());
         }
