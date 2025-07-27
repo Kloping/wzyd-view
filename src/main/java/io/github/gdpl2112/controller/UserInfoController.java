@@ -22,9 +22,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author github kloping
@@ -35,12 +32,14 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class UserInfoController {
     private static final String INFO_PATH = "info";
+
     @Autowired
     ResConfig resConfig;
     @Autowired
     BindConfig bindConfig;
     @Autowired
     UserProfile userProfile;
+
     @RequestMapping("/")
     public synchronized ResponseEntity<String> getUserInfo(
             @RequestParam(name = "sid") String sid
@@ -222,7 +221,7 @@ public class UserInfoController {
                         int nwx = 955 - tww;
 
                         char2d.setFont(FONT_36);
-                        char2d.setColor(COLOR_AW);
+                        char2d.setColor(new Color(255, 255, 255, 64));
                         char2d.fillRoundRect(nwx - 15, 30, tww - 30, 60, 20, 20);
 
                         char2d.setFont(FONT_40);
@@ -238,31 +237,24 @@ public class UserInfoController {
 
             response.setContentType("image/png");
             ImageIO.write(bg, "png", response.getOutputStream());
+            bg.flush();
         } catch (IOException e) {
             log.error("getUserProfileError: {}", e.getMessage());
         }
         return null;
     }
 
-    public static final Color COLOR_AW = new Color(255, 255, 255, 64);
-
-    public static final Color LEVEL_2500 = new Color(47, 47, 47);
-    public static final Color LEVEL_5000 = new Color(69, 110, 232);
-    public static final Color LEVEL_7500 = new Color(91, 0, 227);
-    public static final Color LEVEL_10000 = new Color(252, 223, 119);
-    public static final Color LEVEL_10000UP = new Color(255, 54, 108);
-
     private Color getFightColor(int power) {
         if (power <= 2500) {
-            return LEVEL_2500;
+            return new Color(47, 47, 47);
         } else if (power <= 5000) {
-            return LEVEL_5000;
+            return new Color(69, 110, 232);
         } else if (power <= 7500) {
-            return LEVEL_7500;
+            return new Color(91, 0, 227);
         } else if (power <= 10000) {
-            return LEVEL_10000;
+            return new Color(252, 223, 119);
         }
-        return LEVEL_10000UP;
+        return new Color(255, 54, 108);
     }
 
     private String getHonorImgUrl(int t) {

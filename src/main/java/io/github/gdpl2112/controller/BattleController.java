@@ -24,10 +24,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author github kloping
@@ -37,6 +35,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/battle")
 public class BattleController {
+    public BattleController() {
+        ImageIO.setUseCache(false);
+    }
+
     @Autowired
     ResConfig resConfig;
 
@@ -50,9 +52,6 @@ public class BattleController {
     UserProfile userRoleFuns;
 
     public static final String BATTLE_PATH = "battle";
-
-    public static final Color WIN_COLOR = new Color(66, 183, 255);
-    public static final Color LOSE_COLOR = new Color(255, 66, 66);
 
     /**
      * @param sid 要查询的ID
@@ -162,6 +161,7 @@ public class BattleController {
             response.setContentType("image/png");
             ImageIO.write(bg, "png", response.getOutputStream());
             log.info("end select battle list");
+            bg.flush();
             return null;
         } catch (IOException e) {
             log.error("getBattleHistoryError: {}", e.getMessage());
@@ -250,7 +250,7 @@ public class BattleController {
         Integer kill = battle.getIntValue("killcnt");
         int dead = battle.getIntValue("deadcnt");
         int assist = battle.getIntValue("assistcnt");
-        bgr.setColor(isWin ? WIN_COLOR : LOSE_COLOR);
+        bgr.setColor(isWin ? new Color(66, 183, 255) : new Color(255, 66, 66));
         bgr.setFont(FONT_32);
         bgr.drawString(bar_text, 210, 40);
 

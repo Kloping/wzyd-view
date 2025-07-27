@@ -22,16 +22,7 @@ import java.util.List;
 @Slf4j
 @Service
 public class HerosReq {
-    //{
-    //	"ename": 105,
-    //	"cname": "廉颇",
-    //	"id_name": "lianpo",
-    //	"title": "正义爆轰",
-    //	"new_type": 0,
-    //	"hero_type": 3,
-    //	"skin_name": "正义爆轰|地狱岩魂|无尽征程|寅虎·御盾|功夫炙烤|撼地雄心",
-    //	"moss_id": 3627
-    //}
+
     @Data
     @Accessors(chain = true)
     public static class HeroData {
