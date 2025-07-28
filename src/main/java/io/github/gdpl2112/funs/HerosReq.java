@@ -7,10 +7,8 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.List;
@@ -57,6 +55,6 @@ public class HerosReq {
 
     @Scheduled(cron = "0 59 0 * * ?")
     public void updateHeros() {
-        cache.clear();
+        if (cache == null) cache.clear();
     }
 }
