@@ -19,18 +19,15 @@ public class HttpApi {
     public static final String GAME_URL = "https://ssl.kohsocialapp.qq.com:10001";
 
     public static final String MGAME_URL = MAIN_URL + "/game";
-    public static final String HERO_LIST = "https://pvp.qq.com/web201605/js/herolist.json";
-
-    //基本
-    public static final String USER_PROFILE = MAIN_URL + "/userprofile/profile";
-
     //营地
     public static final String BATTLE_HISTORY = MGAME_URL + "/morebattlelist";
     public static final String BATTLE_DETAIL = MGAME_URL + "/battledetail";
     public static final String SEASON_STATUS = MGAME_URL + "/seasonpage";
     public static final String PROFILE_INDEX = MGAME_URL + "/profile/index";
     public static final String PROFILE_HERO_LIST = MGAME_URL + "/profile/herolist";
-
+    public static final String HERO_LIST = "https://pvp.qq.com/web201605/js/herolist.json";
+    //基本
+    public static final String USER_PROFILE = MAIN_URL + "/userprofile/profile";
     //特殊
     public static final String ALL_ROLE_LIST_V3 = GAME_URL + "/game/allrolelistv3";
     public static final String SKIN_LIST = GAME_URL + "/play/h5getheroskinlist";
@@ -42,6 +39,16 @@ public class HttpApi {
 
     @Autowired
     BindConfig bindConfig;
+
+    private static String getCRand() {
+        return String.valueOf(System.currentTimeMillis());
+    }
+
+    private static String getOpenId() {
+        String uuid = UUID.randomUUID().toString();
+        uuid = uuid.replace("-", "");
+        return uuid.toUpperCase();
+    }
 
     public Map<String, String> getRequestHeaders() {
         BindConfig.UserToken token = bindConfig.getToken();
@@ -86,15 +93,5 @@ public class HttpApi {
         map.put("cClientVersionName", "8.92.0125");
         map.put("cclientversioncode", "2037857908");
         return map;
-    }
-
-    private static String getCRand() {
-        return String.valueOf(System.currentTimeMillis());
-    }
-
-    private static String getOpenId() {
-        String uuid = UUID.randomUUID().toString();
-        uuid = uuid.replace("-", "");
-        return uuid.toUpperCase();
     }
 }

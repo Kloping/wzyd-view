@@ -1,0 +1,1 @@
+mvn -Pnative native:compile -Dnative.rebuild=false -Dnative-image.build-args=--enable-https -Dnative-image.build-args=--initialize-at-run-time=java.awt -Dnative-image.build-args=--add-exports=java.desktop/sun.awt=ALL-UNNAMED -Dnative-image.build-args=--add-exports=java.desktop/sun.font=ALL-UNNAMED

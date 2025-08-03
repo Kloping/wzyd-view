@@ -1,0 +1,1 @@
+java -agentlib:native-image-agent=config-output-dir=./config -jar wzryDp-0.1-SNAPSHOT.jar

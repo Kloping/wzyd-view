@@ -1,13 +1,10 @@
 package io.github.gdpl2112.funs;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONArray;
-import com.alibaba.fastjson2.JSONObject;
 import io.github.gdpl2112.HttpApi;
-import io.github.gdpl2112.dto.DataList;
-import io.github.gdpl2112.dto.DataZjList;
-import lombok.Data;
-import lombok.experimental.Accessors;
+import io.github.gdpl2112.funs.dto.BattleDetailResult;
+import io.github.gdpl2112.funs.dto.BattleOneResult;
+import io.github.gdpl2112.funs.dto.BattleResult;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -26,50 +23,25 @@ import java.util.Map;
 @Component
 @Slf4j
 public class BattleHistory {
-    @Data
-    @Accessors(chain = true)
-    public static class BattleResult {
-        private Integer returnCode = 0;
-        private String returnMsg;
-        private DataList data;
-    }
-
-    @Data
-    @Accessors(chain = true)
-    public static class BattleOneResult {
-        private Integer returnCode = 0;
-        private String returnMsg;
-        private DataZjList data;
-    }
-
-    @Data
-    @Accessors(chain = true)
-    public static class BattleDetailResult {
-        private Integer result;
-        private Integer returnCode = 0;
-        private String returnMsg;
-        private BattleDetailResultData data;
-    }
-
-    @Data
-    @Accessors(chain = true)
-    public static class BattleDetailResultData {
-        private JSONObject head;
-        private JSONObject battle;
-        private JSONObject redTeam;
-        private JSONObject blueTeam;
-        private JSONArray redRoles;
-        private JSONArray blueRoles;
-        private String jumpUrl;
-    }
-
     public static final String DATA_ROLE_FORMAT = """
             {"option":%s,"friendRoleId":"%s","isMultiGame":1,"apiVersion":5,"lastTime":0,"recommendPrivacy":0,"friendUserId":"%s"}
             """;
     public static final String DATA_FORMAT = """
             {"option":%s,"isMultiGame":1,"apiVersion":5,"lastTime":0,"recommendPrivacy":0,"friendUserId":"%s"}
             """;
-
+    public static final String BATTLE_DATA = """
+            {
+              "recommendPrivacy": 0,
+              "battleType": %s,
+              "gameSvr": "%s",
+              "relaySvr": "%s",
+              "targetRoleId": "%s",
+              "gameSeq": "%s"
+            }
+            """;
+    public static final String ONE_HERO_DATA_FORMAT = """
+            {"heroid": "%s", "lastTime": %s, "roleId": "%s", "recommendPrivacy": 0}
+            """;
     @Autowired
     HttpApi api;
 
@@ -91,20 +63,12 @@ public class BattleHistory {
             return JSON.parseObject(json, BattleResult.class);
         } catch (IOException e) {
             log.error("getBattleHistoryError: {}", friendId);
-            return new BattleResult().setReturnCode(-1).setReturnMsg("请求失败:" + e.getMessage());
+            BattleResult result = new BattleResult();
+            result.setReturnCode(-1);
+            result.setReturnMsg("请求失败:" + e.getMessage());
+            return result;
         }
     }
-
-    public static final String BATTLE_DATA = """
-            {
-              "recommendPrivacy": 0,
-              "battleType": %s,
-              "gameSvr": "%s",
-              "relaySvr": "%s",
-              "targetRoleId": "%s",
-              "gameSeq": "%s"
-            }
-            """;
 
     public BattleDetailResult getBattleDetail(String battleType, String gameSvr, String relaySvr, String wz_user_id, String gameSeq) {
         log.info("getBattleDetail: {}-{}", wz_user_id, gameSeq);
@@ -119,14 +83,10 @@ public class BattleHistory {
             String json = response.body();
             return JSON.parseObject(json, BattleDetailResult.class);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return null;
     }
-
-    public static final String ONE_HERO_DATA_FORMAT = """
-            {"heroid": "%s", "lastTime": %s, "roleId": "%s", "recommendPrivacy": 0}
-            """;
 
     public BattleOneResult getBattleOneHistory(Integer serverId, String roleId, Integer heroId, Integer lt) {
         Connection.Response response = null;
@@ -141,8 +101,9 @@ public class BattleHistory {
                     .requestBody(String.format(ONE_HERO_DATA_FORMAT, heroId, lt, roleId))
                     .execute();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return JSON.parseObject(response.body(), BattleOneResult.class);
     }
+
 }

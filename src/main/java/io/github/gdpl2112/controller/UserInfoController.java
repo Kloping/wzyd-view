@@ -2,9 +2,12 @@ package io.github.gdpl2112.controller;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import io.github.gdpl2112.WzryDpApplication;
 import io.github.gdpl2112.config.BindConfig;
 import io.github.gdpl2112.config.ResConfig;
 import io.github.gdpl2112.funs.UserProfile;
+import io.github.gdpl2112.funs.dto.UserProfileResult;
+import io.github.gdpl2112.funs.dto.UserRoleResult;
 import io.github.gdpl2112.utils.BufferedImageUtils;
 import io.github.gdpl2112.utils.NameUtils;
 import io.github.kloping.judge.Judge;
@@ -22,6 +25,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Map;
 
 /**
  * @author github kloping
@@ -31,8 +35,14 @@ import java.net.URL;
 @RequestMapping("/user")
 @Slf4j
 public class UserInfoController {
+    public static final String FONT_STYLE = "黑体";
+    public static final Font FONT_48 = new Font(FONT_STYLE, Font.PLAIN, 48);
+    public static final Font FONT_46 = new Font(FONT_STYLE, Font.PLAIN, 46);
+    public static final Font FONT_40 = new Font(FONT_STYLE, Font.PLAIN, 40);
+    public static final Font FONT_39 = new Font(FONT_STYLE, Font.PLAIN, 39);
+    public static final Font FONT_36 = new Font(FONT_STYLE, Font.PLAIN, 36);
+    public static final Font FONT_30 = new Font(FONT_STYLE, Font.PLAIN, 30);
     private static final String INFO_PATH = "info";
-
     @Autowired
     ResConfig resConfig;
     @Autowired
@@ -41,11 +51,12 @@ public class UserInfoController {
     UserProfile userProfile;
 
     @RequestMapping("/")
-    public synchronized ResponseEntity<String> getUserInfo(
+    public ResponseEntity<String> getUserInfo(
             @RequestParam(name = "sid") String sid
             , @RequestParam(name = "uid", required = false, defaultValue = "") String uid
             , HttpServletResponse response
     ) {
+        WzryDpApplication.LOCK.lock();
         if (Judge.isEmpty(uid)) {
             uid = bindConfig.getBind(sid);
         }
@@ -53,16 +64,16 @@ public class UserInfoController {
             return ResponseEntity.badRequest().body("未绑定UID");
         }
 
-        UserProfile.UserRoleResult userRoleResult = userProfile.getUserRole(uid);
+        UserRoleResult userRoleResult = userProfile.getUserRole(uid);
         if (userRoleResult.getReturnCode() < 0)
             return ResponseEntity.badRequest().body(userRoleResult.getReturnMsg());
-        JSONObject rData = userRoleResult.getData().get(0);
+        Map<String,Object> rData = userRoleResult.getData().get(0);
 
-        String roleId = rData.getString("roleId");
-        UserProfile.UserProfileResult profileData = userProfile.getUserProfile(uid, roleId);
+        String roleId = (String) rData.get("roleId");
+        UserProfileResult profileData = userProfile.getUserProfile(uid, roleId);
         if (profileData.getReturnCode() != 0)
             return ResponseEntity.badRequest().body(profileData.getReturnMsg());
-        UserProfile.UserProfileResult profileIndexData = userProfile.getUserProfileIndex(uid, roleId);
+        UserProfileResult profileIndexData = userProfile.getUserProfileIndex(uid, roleId);
         if (profileIndexData.getReturnCode() != 0)
             return ResponseEntity.badRequest().body(profileIndexData.getReturnMsg());
 
@@ -86,11 +97,11 @@ public class UserInfoController {
 
             g2d.setColor(new Color(10, 10, 10));
             g2d.setFont(FONT_40);
-            String tw = rData.getString("roleDesc");
+            String tw = (String) rData.get("roleDesc");
             g2d.drawString(tw, 275 - (g2d.getFontMetrics().stringWidth(tw) / 2), 437);
             g2d.setColor(new Color(48, 48, 48));
             g2d.setFont(FONT_30);
-            tw = rData.getString("roleName");
+            tw = (String) rData.get("roleName");
             g2d.drawString(tw, 275 - (g2d.getFontMetrics().stringWidth(tw) / 2), 495);
             //段位
             int x = 596, y = -80;
@@ -160,7 +171,7 @@ public class UserInfoController {
             g2d.drawString(skin_num, x + xoff - g2d.getFontMetrics().stringWidth(win_rate) / 2, y + yoff);
             g2d.drawString(win_rate, x + xoff * 2 - g2d.getFontMetrics().stringWidth(skin_num) / 2, y + yoff);
             //over
-            UserProfile.UserProfileResult herosData = userProfile.getUserProfileHeroList(uid, roleId);
+            UserProfileResult herosData = userProfile.getUserProfileHeroList(uid, roleId);
             x = 30;
             y = 900;
             if (herosData != null && herosData.getReturnCode() < 0) {
@@ -241,6 +252,7 @@ public class UserInfoController {
         } catch (IOException e) {
             log.error("getUserProfileError: {}", e.getMessage());
         }
+        WzryDpApplication.LOCK.unlock();
         return null;
     }
 
@@ -271,14 +283,4 @@ public class UserInfoController {
     private String getHonorBgImgUrl(int t) {
         return getHonorImgUrl(t).replace("/icon", "/bg");
     }
-
-
-    public static final String FONT_STYLE = "黑体";
-
-    public static final Font FONT_48 = new Font(FONT_STYLE, Font.PLAIN, 48);
-    public static final Font FONT_46 = new Font(FONT_STYLE, Font.PLAIN, 46);
-    public static final Font FONT_40 = new Font(FONT_STYLE, Font.PLAIN, 40);
-    public static final Font FONT_39 = new Font(FONT_STYLE, Font.PLAIN, 39);
-    public static final Font FONT_36 = new Font(FONT_STYLE, Font.PLAIN, 36);
-    public static final Font FONT_30 = new Font(FONT_STYLE, Font.PLAIN, 30);
 }

@@ -2,12 +2,14 @@ package io.github.gdpl2112.controller;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import io.github.gdpl2112.WzryDpApplication;
 import io.github.gdpl2112.config.BindConfig;
 import io.github.gdpl2112.config.ResConfig;
 import io.github.gdpl2112.dto.DataZjList;
 import io.github.gdpl2112.funs.BattleHistory;
 import io.github.gdpl2112.funs.HerosReq;
 import io.github.gdpl2112.funs.UserProfile;
+import io.github.gdpl2112.funs.dto.*;
 import io.github.gdpl2112.utils.BufferedImageUtils;
 import io.github.kloping.judge.Judge;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,6 +28,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author github kloping
@@ -35,23 +38,29 @@ import java.util.List;
 @RestController
 @RequestMapping("/battle")
 public class BattleController {
+    public static final String BATTLE_PATH = "battle";
+    public static final String FONT_STYLE = "微软雅黑";
+    public static final Font FONT_40 = new Font(FONT_STYLE, Font.PLAIN, 40);
+    public static final Font FONT_33 = new Font(FONT_STYLE, Font.PLAIN, 33);
+    public static final Font FONT_32 = new Font(FONT_STYLE, Font.BOLD, 32);
+    public static final Font FONT_30 = new Font(FONT_STYLE, Font.PLAIN, 30);
+    public static final Font FONT_18 = new Font(FONT_STYLE, Font.PLAIN, 20);
+    public static final Font FONT_20 = new Font(FONT_STYLE, Font.PLAIN, 18);
+    public static final Font FONT_26 = new Font(FONT_STYLE, Font.PLAIN, 26);
+    @Autowired
+    ResConfig resConfig;
+    @Autowired
+    BindConfig bindConfig;
+    @Autowired
+    BattleHistory battleHistory;
+    @Autowired
+    UserProfile userRoleFuns;
+    @Autowired
+    HerosReq req;
+
     public BattleController() {
         ImageIO.setUseCache(false);
     }
-
-    @Autowired
-    ResConfig resConfig;
-
-    @Autowired
-    BindConfig bindConfig;
-
-    @Autowired
-    BattleHistory battleHistory;
-
-    @Autowired
-    UserProfile userRoleFuns;
-
-    public static final String BATTLE_PATH = "battle";
 
     /**
      * @param sid 要查询的ID
@@ -59,12 +68,13 @@ public class BattleController {
      * @return
      */
     @RequestMapping("/history")
-    public synchronized Object history(
+    public Object history(
             @RequestParam(name = "sid") String sid,
             @RequestParam(name = "opt", required = false, defaultValue = "") String opt,
             @RequestParam(name = "uid", required = false, defaultValue = "") String uid,
             HttpServletResponse response
     ) {
+        WzryDpApplication.LOCK.lock();
         try {
             if (Judge.isEmpty(uid)) {
                 uid = bindConfig.getBind(sid);
@@ -75,24 +85,24 @@ public class BattleController {
             log.info("start select battle history: {}", sid);
             Integer optn = filterToOpt(opt);
 
-            UserProfile.UserRoleResult userRoleResult = userRoleFuns.getUserRole(uid);
+            UserRoleResult userRoleResult = userRoleFuns.getUserRole(uid);
             if (userRoleResult.getReturnCode() != 0) {
                 return ResponseEntity.badRequest().body(userRoleResult.getReturnMsg());
             }
-            JSONObject rData = userRoleResult.getData().get(0);
-            String roleId = rData.getString("roleId");
+            Map<String, Object> rData = userRoleResult.getData().get(0);
+            String roleId = rData.get("roleId").toString();
             List<Object> battleList = new LinkedList<>();
             if (optn < 100) {
-                BattleHistory.BattleResult battleResult = battleHistory.getBattleHistory(uid, optn);
+                BattleResult battleResult = battleHistory.getBattleHistory(uid, optn);
                 if (battleResult == null || battleResult.getReturnCode() != 0)
                     return ResponseEntity.badRequest().body(battleResult.getReturnMsg());
                 battleList.addAll(battleResult.getData().getList());
             } else {
-                Integer serverId = rData.getIntValue("serverId");
+                Integer serverId = (Integer) rData.get("serverId");
                 int lt = Math.toIntExact(System.currentTimeMillis() / 1000);
                 //查询单个英雄
                 while (true) {
-                    BattleHistory.BattleOneResult result = battleHistory.getBattleOneHistory(serverId, roleId, optn, lt);
+                    BattleOneResult result = battleHistory.getBattleOneHistory(serverId, roleId, optn, lt);
                     DataZjList list = result.getData();
                     battleList.addAll(list.getZjList());
                     if (battleList.size() >= 12) break;
@@ -103,11 +113,11 @@ public class BattleController {
                 }
             }
             String game_text;
-            int online = rData.getIntValue("gameOnline");
+            int online = (int) rData.get("gameOnline");
             if (online > 0) {
                 game_text = "游戏在线";
             } else {
-                int appOnline = rData.getIntValue("appOnline");
+                int appOnline = (int) rData.get("appOnline");
                 if (appOnline == 0) game_text = "离线";
                 else game_text = "营地在线";
             }
@@ -120,7 +130,7 @@ public class BattleController {
 
             bg = BufferedImageUtils.image2size(950, h, bg);
 
-            String roleIcon = rData.getString("roleIcon");
+            String roleIcon = (String) rData.get("roleIcon");
             BufferedImage roleIconImg = ImageIO.read(new URL(roleIcon));
             roleIconImg = BufferedImageUtils.image2size(320, 320, roleIconImg);
             roleIconImg = BufferedImageUtils.cropToRoundedCorner(roleIconImg, 320);
@@ -166,6 +176,7 @@ public class BattleController {
         } catch (IOException e) {
             log.error("getBattleHistoryError: {}", e.getMessage());
         }
+        WzryDpApplication.LOCK.unlock();
         return null;
     }
 
@@ -180,7 +191,7 @@ public class BattleController {
 
         String[] args = getAllArgs(battle);
 
-        BattleHistory.BattleDetailResult battleDetailResult = battleHistory.getBattleDetail(args[0], args[1], args[2], roleId, args[3]);
+        BattleDetailResult battleDetailResult = battleHistory.getBattleDetail(args[0], args[1], args[2], roleId, args[3]);
 
         ResConfig.Dir avatarDir = resConfig.getDir(ResConfig.Dirs.DIR_AVATAR);
         ResConfig.Dir skillDir = resConfig.getDir(ResConfig.Dirs.DIR_SKILL);
@@ -325,28 +336,15 @@ public class BattleController {
         return new String[]{battleType, gameSvr, relaySvr, gameSeq};
     }
 
-    @Autowired
-    HerosReq req;
-
     private Integer filterToOpt(String opt) {
         if (Judge.isEmpty(opt)) return 0;
         else if (opt.startsWith("排位")) return 1;
         else if (opt.startsWith("标准")) return 2;
         else if (opt.startsWith("娱乐")) return 3;
         else if (opt.startsWith("巅峰")) return 4;
-        for (HerosReq.HeroData hero : req.getHeros()) {
+        for (HeroData hero : req.getHeros()) {
             if (hero.getCname().equals(opt)) return hero.getEname();
         }
         return 0;
     }
-
-    public static final String FONT_STYLE = "微软雅黑";
-
-    public static final Font FONT_40 = new Font(FONT_STYLE, Font.PLAIN, 40);
-    public static final Font FONT_33 = new Font(FONT_STYLE, Font.PLAIN, 33);
-    public static final Font FONT_32 = new Font(FONT_STYLE, Font.BOLD, 32);
-    public static final Font FONT_30 = new Font(FONT_STYLE, Font.PLAIN, 30);
-    public static final Font FONT_18 = new Font(FONT_STYLE, Font.PLAIN, 20);
-    public static final Font FONT_20 = new Font(FONT_STYLE, Font.PLAIN, 18);
-    public static final Font FONT_26 = new Font(FONT_STYLE, Font.PLAIN, 26);
 }

@@ -3,7 +3,9 @@ package io.github.gdpl2112.config;
 import com.alibaba.fastjson2.JSONObject;
 import io.github.kloping.file.FileUtils;
 import io.github.kloping.judge.Judge;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,24 +21,14 @@ import java.util.List;
 @Component
 public class BindConfig {
 
+    @Value("${data.path}")
+    public String datapath = "./data";
+    private final String data = "./bind.json";
+    private JSONObject jdata;
+
     public void reload() {
         getJdata();
     }
-
-    @Data
-    public static class UserToken {
-
-        public String user;
-
-        public String token;
-    }
-
-    @Value("${data.path}")
-    public String datapath = "./data";
-
-    private String data = "./bind.json";
-
-    private JSONObject jdata;
 
     public UserToken getToken() {
         if (jdata == null) getJdata();
@@ -150,5 +142,15 @@ public class BindConfig {
             FileUtils.putStringInFile(str, file);
         }
         jdata = JSONObject.parseObject(str);
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserToken {
+
+        public String user;
+
+        public String token;
     }
 }

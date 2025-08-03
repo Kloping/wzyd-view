@@ -2,7 +2,10 @@ package io.github.gdpl2112.funs;
 
 import com.alibaba.fastjson2.JSON;
 import io.github.gdpl2112.HttpApi;
+import io.github.gdpl2112.funs.dto.HeroData;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -20,19 +23,6 @@ import java.util.List;
 @Slf4j
 @Service
 public class HerosReq {
-
-    @Data
-    @Accessors(chain = true)
-    public static class HeroData {
-        private Integer ename;
-        private String cname;
-        private String id_name;
-        private String title;
-        private Integer new_type;
-        private Integer hero_type;
-        private String skin_name;
-        private Integer moss_id;
-    }
 
     private List<HeroData> cache;
 
@@ -57,4 +47,5 @@ public class HerosReq {
     public void updateHeros() {
         if (cache == null) cache.clear();
     }
+
 }

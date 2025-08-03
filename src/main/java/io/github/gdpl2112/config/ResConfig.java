@@ -17,6 +17,50 @@ import java.io.IOException;
 @Slf4j
 @Component
 public class ResConfig {
+    @Value("${data.path}")
+    public String PF = "./data";
+    @Value("${data.res}")
+    private String res;
+
+    public Dir getDir(Dirs dir) {
+        return new Dir(PF + "/" + dir.dir);
+    }
+
+    //从类路径中获取 随机的文件
+    public File getResourceBytes(String path) {
+        File dir = new File(res, path);
+        int r = dir.listFiles().length;
+        File file = dir.listFiles()[RandomUtils.RANDOM.nextInt(r)];
+        return file;
+    }
+
+    /**
+     * 从类路径中加载
+     *
+     * @param path
+     * @param name
+     * @return
+     */
+    public File getResourceBytes(String path, String name) {
+        File dir = new File(res, path);
+        File file = new File(dir, name);
+        return file;
+    }
+
+    public enum Dirs {
+        DIR_AVATAR("avatar"),
+        DIR_EQUIP("equip"),
+        DIR_ICON("icon"),
+        DIR_SKILL("skill"),
+        ;
+
+        public final String dir;
+
+        Dirs(String dir) {
+            this.dir = dir;
+        }
+    }
+
     public record Dir(String path) {
         public File getFile(String name) {
             return new File(path + "/" + name);
@@ -38,50 +82,5 @@ public class ResConfig {
             log.info("downloaded {} to {}", url, file.getAbsolutePath());
             return file;
         }
-    }
-
-    public enum Dirs {
-        DIR_AVATAR("avatar"),
-        DIR_EQUIP("equip"),
-        DIR_ICON("icon"),
-        DIR_SKILL("skill"),
-        ;
-
-        public final String dir;
-
-        Dirs(String dir) {
-            this.dir = dir;
-        }
-    }
-
-    @Value("${data.path}")
-    public String PF = "./data";
-
-    public Dir getDir(Dirs dir) {
-        return new Dir(PF + "/" + dir.dir);
-    }
-
-    @Value("${data.res}")
-    private String res;
-
-    //从类路径中获取 随机的文件
-    public File getResourceBytes(String path) {
-        File dir = new File(res, path);
-        int r = dir.listFiles().length;
-        File file = dir.listFiles()[RandomUtils.RANDOM.nextInt(r)];
-        return file;
-    }
-
-    /**
-     * 从类路径中加载
-     *
-     * @param path
-     * @param name
-     * @return
-     */
-    public File getResourceBytes(String path, String name) {
-        File dir = new File(res, path);
-        File file = new File(dir, name);
-        return file;
     }
 }

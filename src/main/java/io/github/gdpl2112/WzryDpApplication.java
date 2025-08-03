@@ -8,9 +8,15 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 @SpringBootApplication
 @EnableScheduling
 public class WzryDpApplication {
+
+    public static final Lock LOCK = new ReentrantLock();
+
     public static void main(String[] args) {
         System.out.println("WzydView v1.0 pre start");
         SpringApplication.run(WzryDpApplication.class, args);
