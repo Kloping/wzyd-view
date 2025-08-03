@@ -175,9 +175,10 @@ public class BattleController {
             return null;
         } catch (IOException e) {
             log.error("getBattleHistoryError: {}", e.getMessage());
+            return null;
+        } finally {
+            WzryDpApplication.LOCK.unlock();
         }
-        WzryDpApplication.LOCK.unlock();
-        return null;
     }
 
     public void drawOneBattle(JSONObject battle, String roleId, BufferedImage skill_mask, BufferedImage hero_mask, BufferedImage ring, Graphics2D g2d, int index) throws IOException {
