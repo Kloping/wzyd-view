@@ -66,9 +66,11 @@ public class BindController {
                 sb.append(arr.get(2));
                 int gameOnline = (int) data.get("gameOnline");
                 sb.append("\n当前游戏: ").append(gameOnline > 0 ? "\uD83D\uDFE2在线" : "⚪离线");
-                long lu = ((long) data.get("lu")) * 1000;
+                int lu0 = (int) data.get("lu");
+                long lu = lu0 * 1000L;
                 sb.append("\n营地最近在线: ").append(SF_0.format(new Date(lu)));
-                long z = ((long) data.get("z")) * 1000;
+                int z0 = (int) data.get("z");
+                long z = z0 * 1000L;
                 sb.append("\n游戏最近在线: ").append(SF_0.format(new Date(z)));
             }
             return ResponseEntity.ok(sb.toString().trim());
