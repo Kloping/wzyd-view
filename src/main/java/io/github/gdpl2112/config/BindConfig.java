@@ -21,7 +21,7 @@ import java.util.List;
 @Component
 public class BindConfig {
 
-    @Value("${data.path}")
+    @Value("${data.path:./data}")
     public String datapath = "./data";
     private final String data = "./bind.json";
     private JSONObject jdata;

@@ -38,7 +38,7 @@ public class HttpApi {
     public static final String HERO_HISTORY = MAIN_URL + "/gametoolbox/hero/record/historydetails";
 
     @Autowired
-    BindConfig bindConfig;
+    public BindConfig bindConfig;
 
     private static String getCRand() {
         return String.valueOf(System.currentTimeMillis());
