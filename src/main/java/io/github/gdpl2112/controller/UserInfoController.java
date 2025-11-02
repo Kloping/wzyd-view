@@ -52,14 +52,14 @@ public class UserInfoController {
 
     @RequestMapping("/")
     public ResponseEntity<String> getUserInfo(
-            @RequestParam(name = "sid") String sid
+            @RequestParam(name = "sid", required = false, defaultValue = "") String sid
             , @RequestParam(name = "uid", required = false, defaultValue = "") String uid
             , HttpServletResponse response
     ) {
         WzryDpApplication.LOCK.lock();
         try {
             if (Judge.isEmpty(uid)) {
-                uid = bindConfig.getBind(sid);
+                if (Judge.isNotEmpty(sid)) uid = bindConfig.getBind(sid);
             }
             if (Judge.isEmpty(uid)) {
                 return ResponseEntity.badRequest().body("未绑定UID");
@@ -68,7 +68,7 @@ public class UserInfoController {
             UserRoleResult userRoleResult = userProfile.getUserRole(uid);
             if (userRoleResult.getReturnCode() < 0)
                 return ResponseEntity.badRequest().body(userRoleResult.getReturnMsg());
-            Map<String,Object> rData = userRoleResult.getData().get(0);
+            Map<String, Object> rData = userRoleResult.getData().get(0);
 
             String roleId = (String) rData.get("roleId");
             UserProfileResult profileData = userProfile.getUserProfile(uid, roleId);

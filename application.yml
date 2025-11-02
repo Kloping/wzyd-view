@@ -1,6 +1,14 @@
 server:
   port: 8080
 
+spring:
+  application:
+    name: wzyd-view
+    version: 1.2
+  web:
+    resources:
+      static-locations: classpath:/dist
+
 data:
   path: ./data
   res: ./res

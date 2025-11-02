@@ -18,9 +18,9 @@ public class WzryDpApplication {
     public static final Lock LOCK = new ReentrantLock();
 
     public static void main(String[] args) {
-        System.out.println("WzydView v1.1 pre start");
+        System.out.println("WzydView v1.2 pre start");
         SpringApplication.run(WzryDpApplication.class, args);
-        System.out.println("WzydView v1.1 started successful!");
+        System.out.println("WzydView v1.2 started successful!");
     }
 
     @Bean

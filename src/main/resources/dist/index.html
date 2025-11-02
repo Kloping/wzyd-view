@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>王者营地API接口测试页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar h1 {
+            color: #333;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .navbar-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .author-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #0366d6;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .github-link:hover {
+            color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .github-link::before {
+            content: '🔗';
+            font-size: 18px;
+        }
+
+        .reference-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #6a737d;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .reference-link:hover {
+            color: #0366d6;
+        }
+
+        .reference-link::before {
+            content: '📚';
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .api-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .api-section:hover {
+            transform: translateY(-5px);
+        }
+
+        .api-section h2 {
+            color: #333;
+            font-size: 22px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .api-section p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .response-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .response-content {
+            color: #555;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .response img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .badge-get {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-image {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .row .form-group {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .navbar-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <h1>🏆 王者营地 API 接口测试页面</h1>
+    <div class="navbar-info">
+        <div class="author-info">
+            <strong>作者:</strong> github kloping
+        </div>
+        <a href="https://github.com/gdpl2112" target="_blank" class="github-link">项目地址</a>
+        <a href="https://github.com/KimigaiiWuyi/WzryUID" target="_blank" class="reference-link">参考项目</a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- 用户搜索接口 -->
+    <div class="api-section">
+        <h2>搜索用户 <span class="badge badge-get">GET</span></h2>
+        <p>根据昵称搜索王者营地用户</p>
+        <div class="alert alert-info">
+            <strong>提示：</strong> 接口: <code>/query/show</code> | 返回类型: JSON用户列表
+        </div>
+        <div class="form-group">
+            <label>用户昵称 <span class="required">*必填</span></label>
+            <input type="text" id="query-name" placeholder="请输入用户昵称;可以从游戏中复制">
+        </div>
+        <button class="btn" onclick="searchUser()">搜索用户</button>
+        <div class="response" id="query-response" style="display:none;">
+            <div class="response-title">响应结果:</div>
+            <div class="response-content" id="query-content"></div>
+        </div>
+    </div>
+
+    <!-- 用户查询接口 -->
+    <div class="api-section">
+        <h2>用户查询 <span class="badge badge-get">GET</span> <span class="badge badge-image">返回图片</span></h2>
+        <p>根据营地ID查询用户信息并生成用户画像图片</p>
+        <div class="alert alert-info">
+            <strong>提示：</strong> 接口: <code>/user/</code> | 返回类型: 用户画像图片 | 参数必须填其一
+        </div>
+        <div class="form-group">
+            <label>用户ID (SID) <span class="required">*选填</span></label>
+            <input type="text" id="user-sid" placeholder="请输入用户ID">
+        </div>
+        <div class="form-group">
+            <label>营地ID (UID) <span class="required">可选</span></label>
+            <input type="text" id="user-uid" placeholder="留空则使用已绑定UID">
+        </div>
+        <button class="btn" onclick="getUserInfo()">查询用户信息</button>
+        <div class="response" id="user-response" style="display:none;">
+            <div class="response-title">响应结果:</div>
+            <div class="response-content" id="user-content"></div>
+        </div>
+    </div>
+
+    <!-- 战斗历史接口 -->
+    <div class="api-section">
+        <h2>战斗历史 <span class="badge badge-get">GET</span> <span class="badge badge-image">返回图片</span></h2>
+        <p>查询战斗历史记录并生成战斗历史图片</p>
+        <div class="alert alert-info">
+            <strong>提示：</strong> 接口: <code>/battle/history</code> | 返回类型: 战斗历史图片 | 参数必须填其一
+        </div>
+        <div class="form-group">
+            <label>用户ID (SID) <span class="required">*选填</span></label>
+            <input type="text" id="battle-sid" placeholder="请输入用户ID">
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label>对战类型 (opt)</label>
+                <select id="battle-opt">
+                    <option value="">全部</option>
+                    <option value="排位">排位赛</option>
+                    <option value="巅峰">巅峰赛</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>营地ID (UID)</label>
+                <input type="text" id="battle-uid" placeholder="留空则使用已绑定UID">
+            </div>
+        </div>
+        <button class="btn" onclick="getBattleHistory()">查询战斗历史</button>
+        <div class="response" id="battle-response" style="display:none;">
+            <div class="response-title">响应结果:</div>
+            <div class="response-content" id="battle-content"></div>
+        </div>
+    </div>
+
+    <!-- 绑定管理接口 -->
+    <div class="api-section">
+        <h2>绑定管理 <span class="badge badge-get">GET</span></h2>
+        <p>绑定、解除绑定、切换和查询已绑定的用户ID</p>
+        <div class="alert alert-info">
+            <strong>提示：</strong> 接口组: <code>/bind/*</code> | 包括: 绑定 / 解除绑定 / 切换 / 查询 / 重载
+        </div>
+
+        <!-- 绑定 -->
+        <div class="form-group">
+            <label>用户ID (SID)</label>
+            <input type="text" id="bind-sid" placeholder="请输入用户ID">
+        </div>
+        <div class="form-group">
+            <label>营地ID (UID)</label>
+            <input type="text" id="bind-uid" placeholder="请输入营地ID">
+        </div>
+        <button class="btn" onclick="bindUser()">绑定用户</button>
+        <button class="btn" onclick="unbindUser()"
+                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">解除绑定
+        </button>
+
+        <!-- 切换绑定 -->
+        <div style="margin-top: 20px;">
+            <div class="form-group">
+                <label>切换绑定的营地ID (UID) <span class="required">可选</span></label>
+                <input type="text" id="switch-uid" placeholder="留空则顺序切换">
+            </div>
+            <button class="btn" onclick="switchBind()"
+                    style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">切换绑定
+            </button>
+        </div>
+
+        <!-- 查询绑定 -->
+        <div style="margin-top: 20px;">
+            <button class="btn" onclick="getBindList()"
+                    style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">查询绑定列表
+            </button>
+            <button class="btn" onclick="reloadBind()"
+                    style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">重载配置
+            </button>
+        </div>
+
+        <div class="response" id="bind-response" style="display:none;">
+            <div class="response-title">响应结果:</div>
+            <div class="response-content" id="bind-content"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = window.location.origin;
+
+    // 通用请求函数
+    async function makeRequest(url, params, isImage = false) {
+        const queryString = new URLSearchParams(params).toString();
+        const fullUrl = `${API_BASE}${url}?${queryString}`;
+
+        try {
+            if (isImage) {
+                // 对于图片请求，直接显示图片
+                return {success: true, imageUrl: fullUrl};
+            } else {
+                // 对于JSON请求，返回数据
+                const response = await fetch(fullUrl);
+                const data = await response.text();
+                return {success: true, data: data};
+            }
+        } catch (error) {
+            return {success: false, error: error.message};
+        }
+    }
+
+    // 显示响应
+    function showResponse(elementId, contentId, result, isImage = false) {
+        const responseDiv = document.getElementById(elementId);
+        const contentDiv = document.getElementById(contentId);
+        responseDiv.style.display = 'block';
+
+        if (result.success) {
+            if (isImage && result.imageUrl) {
+                contentDiv.innerHTML = `<img src="${result.imageUrl}" alt="响应图片" onerror="this.parentElement.textContent='图片加载失败，请检查参数是否正确'">`;
+            } else {
+                try {
+                    const jsonData = JSON.parse(result.data);
+                    contentDiv.textContent = JSON.stringify(jsonData, null, 2);
+                } catch (e) {
+                    contentDiv.textContent = result.data;
+                }
+            }
+        } else {
+            contentDiv.textContent = `错误: ${result.error}`;
+        }
+    }
+
+    // 获取用户信息
+    async function getUserInfo() {
+        const sid = document.getElementById('user-sid').value;
+        const uid = document.getElementById('user-uid').value;
+        const params = {sid};
+        if (uid) params.uid = uid;
+        if (!sid && !uid) {
+            alert('参数不能都为空');
+            return;
+        }
+
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading"></span> 查询中...';
+        btn.disabled = true;
+
+        const result = await makeRequest('/user/', params, true);
+        showResponse('user-response', 'user-content', result, true);
+
+        btn.innerHTML = '查询用户信息';
+        btn.disabled = false;
+    }
+
+    // 获取战斗历史
+    async function getBattleHistory() {
+        const sid = document.getElementById('battle-sid').value;
+
+        const opt = document.getElementById('battle-opt').value;
+        const uid = document.getElementById('battle-uid').value;
+        const params = {sid};
+        if (opt) params.opt = opt;
+        if (uid) params.uid = uid;
+        if (!sid && !uid) {
+            alert('参数不能都为空');
+            return;
+        }
+
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading"></span> 查询中...';
+        btn.disabled = true;
+
+        const result = await makeRequest('/battle/history', params, true);
+        showResponse('battle-response', 'battle-content', result, true);
+
+        btn.innerHTML = '查询战斗历史';
+        btn.disabled = false;
+    }
+
+    // 搜索用户
+    async function searchUser() {
+        const name = document.getElementById('query-name').value;
+        if (!name) {
+            alert('请输入用户昵称');
+            return;
+        }
+
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading"></span> 搜索中...';
+        btn.disabled = true;
+
+        const result = await makeRequest('/query/show', {name}, false);
+        showResponse('query-response', 'query-content', result, false);
+
+        btn.innerHTML = '搜索用户';
+        btn.disabled = false;
+    }
+
+    // 绑定用户
+    async function bindUser() {
+        const sid = document.getElementById('bind-sid').value;
+        const uid = document.getElementById('bind-uid').value;
+
+        if (!sid || !uid) {
+            alert('请输入营地ID和用户ID');
+            return;
+        }
+
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading"></span> 绑定中...';
+        btn.disabled = true;
+
+        const result = await makeRequest('/bind/', {sid, uid}, false);
+        showResponse('bind-response', 'bind-content', result, false);
+
+        btn.innerHTML = '绑定用户';
+        btn.disabled = false;
+    }
+
+    // 解除绑定
+    async function unbindUser() {
+        const sid = document.getElementById('bind-sid').value;
+        const uid = document.getElementById('bind-uid').value;
+
+        if (!sid || !uid) {
+            alert('请输入营地ID和用户ID');
+            return;
+        }
+
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading"></span> 解绑中...';
+        btn.disabled = true;
+
+        const result = await makeRequest('/bind/un', {sid, uid}, false);
+        showResponse('bind-response', 'bind-content', result, false);
+
+        btn.innerHTML = '解除绑定';
+        btn.disabled = false;
+    }
+
+    // 切换绑定
+    async function switchBind() {
+        const sid = document.getElementById('bind-sid').value;
+        if (!sid) {
+            alert('请输入用户ID');
+            return;
+        }
+
+        const uid = document.getElementById('switch-uid').value;
+        const params = {sid};
+        if (uid) params.uid = uid;
+
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading"></span> 切换中...';
+        btn.disabled = true;
+
+        const result = await makeRequest('/bind/switch', params, false);
+        showResponse('bind-response', 'bind-content', result, false);
+
+        btn.innerHTML = '切换绑定';
+        btn.disabled = false;
+    }
+
+    // 获取绑定列表
+    async function getBindList() {
+        const sid = document.getElementById('bind-sid').value;
+        if (!sid) {
+            alert('请输入用户ID');
+            return;
+        }
+
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading"></span> 查询中...';
+        btn.disabled = true;
+
+        const result = await makeRequest('/bind/get', {sid}, false);
+        showResponse('bind-response', 'bind-content', result, false);
+
+        btn.innerHTML = '查询绑定列表';
+        btn.disabled = false;
+    }
+
+    // 重载配置
+    async function reloadBind() {
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading"></span> 重载中...';
+        btn.disabled = true;
+
+        const result = await makeRequest('/bind/reload', {}, false);
+        showResponse('bind-response', 'bind-content', result, false);
+
+        btn.innerHTML = '重载配置';
+        btn.disabled = false;
+    }
+</script>
+</body>
+</html>

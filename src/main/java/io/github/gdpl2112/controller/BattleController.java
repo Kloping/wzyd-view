@@ -69,7 +69,7 @@ public class BattleController {
      */
     @RequestMapping("/history")
     public Object history(
-            @RequestParam(name = "sid") String sid,
+            @RequestParam(name = "sid", required = false, defaultValue = "") String sid,
             @RequestParam(name = "opt", required = false, defaultValue = "") String opt,
             @RequestParam(name = "uid", required = false, defaultValue = "") String uid,
             HttpServletResponse response
@@ -77,7 +77,7 @@ public class BattleController {
         WzryDpApplication.LOCK.lock();
         try {
             if (Judge.isEmpty(uid)) {
-                uid = bindConfig.getBind(sid);
+                if (Judge.isNotEmpty(sid)) uid = bindConfig.getBind(sid);
             }
             if (Judge.isEmpty(uid)) {
                 return ResponseEntity.badRequest().body("未绑定UID");
@@ -131,6 +131,7 @@ public class BattleController {
             bg = BufferedImageUtils.image2size(950, h, bg);
 
             String roleIcon = (String) rData.get("roleIcon");
+            roleIcon = filterTo0Icon(roleIcon);
             BufferedImage roleIconImg = ImageIO.read(new URL(roleIcon));
             roleIconImg = BufferedImageUtils.image2size(320, 320, roleIconImg);
             roleIconImg = BufferedImageUtils.cropToRoundedCorner(roleIconImg, 320);
@@ -179,6 +180,15 @@ public class BattleController {
         } finally {
             WzryDpApplication.LOCK.unlock();
         }
+    }
+
+    private String filterTo0Icon(String roleIcon) {
+        int i = roleIcon.lastIndexOf("/");
+        if (i > 0) {
+            String s = roleIcon.substring(0,i + 1);
+            return s + "0";
+        }
+        return roleIcon;
     }
 
     public void drawOneBattle(JSONObject battle, String roleId, BufferedImage skill_mask, BufferedImage hero_mask, BufferedImage ring, Graphics2D g2d, int index) throws IOException {
