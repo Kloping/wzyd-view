@@ -30,8 +30,7 @@ public class ResConfig {
     public File getResourceBytes(String path) {
         File dir = new File(res, path);
         int r = dir.listFiles().length;
-        File file = dir.listFiles()[RandomUtils.RANDOM.nextInt(r)];
-        return file;
+        return dir.listFiles()[RandomUtils.RANDOM.nextInt(r)];
     }
 
     /**
