@@ -56,7 +56,7 @@ public class UserProfile {
             return JSONObject.parseObject(response.body(), UserRoleResult.class);
         } catch (Exception e) {
             log.error("getUserRoleError:{}", yd_user_id, e);
-            throw new RuntimeException(e);
+            throw new RuntimeException("从UID" + yd_user_id + "获取信息失败.");
         }
     }
 
