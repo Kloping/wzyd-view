@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSONArray;
 import io.github.gdpl2112.config.BindConfig;
 import io.github.gdpl2112.funs.UserProfile;
 import io.github.gdpl2112.funs.dto.UserRoleResult;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import java.util.Map;
  * @author github kloping
  * @date 2025/7/1-10:21
  */
+@Slf4j
 @RestController
 @RequestMapping("/bind")
 public class BindController {
@@ -58,20 +60,25 @@ public class BindController {
         if (uids != null) {
             for (String uid : uids) {
                 sb.append("\n--------\n").append(uid).append("->");
-                UserRoleResult userRoleResult = userProfile.getUserRole(uid);
-                Map<String, Object> data = userRoleResult.getData().get(0);
-                JSONArray arr = (JSONArray) data.get("roleText");
-                sb.append(arr.get(0)).append("\n");
-                sb.append(arr.get(1)).append("->").append(data.get("roleName")).append(" ");
-                sb.append(arr.get(2));
-                int gameOnline = (int) data.get("gameOnline");
-                sb.append("\n当前游戏: ").append(gameOnline > 0 ? "\uD83D\uDFE2在线" : "⚪离线");
-                int lu0 = (int) data.get("lu");
-                long lu = lu0 * 1000L;
-                sb.append("\n营地最近在线: ").append(SF_0.format(new Date(lu)));
-                int z0 = (int) data.get("z");
-                long z = z0 * 1000L;
-                sb.append("\n游戏最近在线: ").append(SF_0.format(new Date(z)));
+                try {
+                    UserRoleResult userRoleResult = userProfile.getUserRole(uid);
+                    Map<String, Object> data = userRoleResult.getData().get(0);
+                    JSONArray arr = (JSONArray) data.get("roleText");
+                    sb.append(arr.get(0)).append("\n");
+                    sb.append(arr.get(1)).append("->").append(data.get("roleName")).append(" ");
+                    sb.append(arr.get(2));
+                    int gameOnline = (int) data.get("gameOnline");
+                    sb.append("\n当前游戏: ").append(gameOnline > 0 ? "\uD83D\uDFE2在线" : "⚪离线");
+                    int lu0 = (int) data.get("lu");
+                    long lu = lu0 * 1000L;
+                    sb.append("\n营地最近在线: ").append(SF_0.format(new Date(lu)));
+                    int z0 = (int) data.get("z");
+                    long z = z0 * 1000L;
+                    sb.append("\n游戏最近在线: ").append(SF_0.format(new Date(z)));
+                } catch (Exception e) {
+                    log.debug("on get info uid({}) error.{}", uid, e.getMessage(), e);
+                    sb.append("\n信息获取失败!");
+                }
             }
             return ResponseEntity.ok(sb.toString().trim());
         } else return ResponseEntity.ok("未绑定UID");

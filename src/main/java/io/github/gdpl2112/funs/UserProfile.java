@@ -54,10 +54,10 @@ public class UserProfile {
                     .execute();
             log.debug("getUserRoleResponse:{}", response.body());
             return JSONObject.parseObject(response.body(), UserRoleResult.class);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("getUserRoleError:{}", yd_user_id, e);
+            throw new RuntimeException("从UID" + yd_user_id + "获取信息失败.");
         }
-        return null;
     }
 
     public UserProfileResult getUserProfile(String yd_user_id, String role_id) {
