@@ -45,7 +45,7 @@ public class HerosReq {
 
     @Scheduled(cron = "0 59 0 * * ?")
     public void updateHeros() {
-        if (cache == null) cache.clear();
+        if (cache != null) cache.clear();
     }
 
 }

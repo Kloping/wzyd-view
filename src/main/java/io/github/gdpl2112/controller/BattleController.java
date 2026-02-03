@@ -26,9 +26,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author github kloping
@@ -83,7 +82,12 @@ public class BattleController {
                 return ResponseEntity.badRequest().body("未绑定UID");
             }
             log.info("start select battle history: {}", sid);
-            Integer optn = filterToOpt(opt);
+            Integer optn = null;
+            try {
+                optn = filterToOpt(opt);
+            } catch (RuntimeException e) {
+
+            }
 
             UserRoleResult userRoleResult = userRoleFuns.getUserRole(uid);
             if (userRoleResult.getReturnCode() != 0) {
@@ -185,7 +189,7 @@ public class BattleController {
     private String filterTo0Icon(String roleIcon) {
         int i = roleIcon.lastIndexOf("/");
         if (i > 0) {
-            String s = roleIcon.substring(0,i + 1);
+            String s = roleIcon.substring(0, i + 1);
             return s + "0";
         }
         return roleIcon;
@@ -353,8 +357,27 @@ public class BattleController {
         else if (opt.startsWith("标准")) return 2;
         else if (opt.startsWith("娱乐")) return 3;
         else if (opt.startsWith("巅峰")) return 4;
+        Integer hi = -1;
         for (HeroData hero : req.getHeros()) {
-            if (hero.getCname().equals(opt)) return hero.getEname();
+            if (hero.getCname().equals(opt)) {
+                hi = hero.getEname();
+                break;
+            }
+        }
+        Set<String> mabey = new HashSet<>();
+        if (hi <= 0) {
+            for (int i = 0; i < opt.length(); i++) {
+                String c0 = String.valueOf(opt.charAt(i));
+                for (HeroData hero : req.getHeros()) {
+                    if (hero.getCname().contains(c0))
+                        mabey.add(hero.getCname());
+                }
+            }
+            StringBuilder sbtips = new StringBuilder();
+            for (String m : mabey) {
+                sbtips.append(m).append("\r\n");
+            }
+            throw new RuntimeException("未找到英雄: " + opt + ", 可能的英雄有: \n" + sbtips.toString().trim());
         }
         return 0;
     }

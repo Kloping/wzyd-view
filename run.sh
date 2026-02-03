@@ -4,6 +4,10 @@ if [ -z "${1}" ]; then
     echo "[bash] No Parameters,Default Skip Compilation."
 elif [ "${1}" = "false" ]; then
     echo "[bash] Skip Compilation."
+elif [ "${1}" = "cc" ]; then
+    echo "[bash] Only Compilation."
+    git pull
+    mvn clean compile
 else
     echo "[bash] Start Clean And Copy-dependencies Compilation."
     echo "[bash] Delay 3s after rm -r libs"
