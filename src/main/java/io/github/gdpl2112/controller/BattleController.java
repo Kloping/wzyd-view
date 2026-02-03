@@ -86,7 +86,7 @@ public class BattleController {
             try {
                 optn = filterToOpt(opt);
             } catch (RuntimeException e) {
-
+                return ResponseEntity.badRequest().body(e.getMessage());
             }
 
             UserRoleResult userRoleResult = userRoleFuns.getUserRole(uid);
