@@ -93,26 +93,45 @@
             padding: 0 20px;
         }
 
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
         .api-section {
             background: white;
             border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 25px;
+            padding: 25px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
+            transition: all 0.3s;
+            border: 1px solid #e0e0e0;
         }
 
         .api-section:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
         }
 
-        .api-section h2 {
-            color: #333;
-            font-size: 22px;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
         }
+
+        .card-title {
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+
 
         .api-section p {
             color: #666;
@@ -293,6 +312,40 @@
             .row {
                 flex-direction: column;
             }
+
+            .card-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .api-section {
+                padding: 20px;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 15px;
+            }
+
+            .api-section {
+                padding: 15px;
+            }
+
+            .card-title {
+                font-size: 18px;
+            }
         }
     </style>
 </head>
@@ -309,125 +362,179 @@
 </nav>
 
 <div class="container">
-
-    <!-- 用户搜索接口 -->
-    <div class="api-section">
-        <h2>搜索用户 <span class="badge badge-get">GET</span></h2>
-        <p>根据昵称搜索王者营地用户</p>
-        <div class="alert alert-info">
-            <strong>提示：</strong> 接口: <code>/query/show</code> | 返回类型: JSON用户列表
-        </div>
-        <div class="form-group">
-            <label>用户昵称 <span class="required">*必填</span></label>
-            <input type="text" id="query-name" placeholder="请输入用户昵称;可以从游戏中复制">
-        </div>
-        <button class="btn" onclick="searchUser()">搜索用户</button>
-        <div class="response" id="query-response" style="display:none;">
-            <div class="response-title">响应结果:</div>
-            <div class="response-content" id="query-content"></div>
-        </div>
-    </div>
-
-    <!-- 用户查询接口 -->
-    <div class="api-section">
-        <h2>用户查询 <span class="badge badge-get">GET</span> <span class="badge badge-image">返回图片</span></h2>
-        <p>根据营地ID查询用户信息并生成用户画像图片</p>
-        <div class="alert alert-info">
-            <strong>提示：</strong> 接口: <code>/user/</code> | 返回类型: 用户画像图片 | 参数必须填其一
-        </div>
-        <div class="form-group">
-            <label>用户ID (SID) <span class="required">*选填</span></label>
-            <input type="text" id="user-sid" placeholder="请输入用户ID">
-        </div>
-        <div class="form-group">
-            <label>营地ID (UID) <span class="required">可选</span></label>
-            <input type="text" id="user-uid" placeholder="留空则使用已绑定UID">
-        </div>
-        <button class="btn" onclick="getUserInfo()">查询用户信息</button>
-        <div class="response" id="user-response" style="display:none;">
-            <div class="response-title">响应结果:</div>
-            <div class="response-content" id="user-content"></div>
-        </div>
-    </div>
-
-    <!-- 战斗历史接口 -->
-    <div class="api-section">
-        <h2>战斗历史 <span class="badge badge-get">GET</span> <span class="badge badge-image">返回图片</span></h2>
-        <p>查询战斗历史记录并生成战斗历史图片</p>
-        <div class="alert alert-info">
-            <strong>提示：</strong> 接口: <code>/battle/history</code> | 返回类型: 战斗历史图片 | 参数必须填其一
-        </div>
-        <div class="form-group">
-            <label>用户ID (SID) <span class="required">*选填</span></label>
-            <input type="text" id="battle-sid" placeholder="请输入用户ID">
-        </div>
-        <div class="row">
+    <div class="card-container">
+        <!-- 用户搜索卡片 -->
+        <div class="api-section">
+            <div class="card-header">
+                <h2 class="card-title">搜索用户</h2>
+                <span class="badge badge-get">GET</span>
+            </div>
+            <p>根据昵称搜索王者营地用户</p>
+            <div class="alert alert-info">
+                <strong>提示：</strong> 接口: <code>/query/show</code> | 返回类型: JSON用户列表
+            </div>
             <div class="form-group">
-                <label>对战类型 (opt)</label>
-                <select id="battle-opt">
-                    <option value="">全部</option>
-                    <option value="排位">排位赛</option>
-                    <option value="巅峰">巅峰赛</option>
-                </select>
+                <label>用户昵称 <span class="required">*必填</span></label>
+                <input type="text" id="query-name" placeholder="请输入用户昵称;可以从游戏中复制">
+            </div>
+            <button class="btn" onclick="searchUser()">搜索用户</button>
+            <div class="response" id="query-response" style="display:none;">
+                <div class="response-title">响应结果:</div>
+                <div class="response-content" id="query-content"></div>
+            </div>
+        </div>
+
+        <!-- 用户信息查询卡片 -->
+        <div class="api-section">
+            <div class="card-header">
+                <h2 class="card-title">用户信息</h2>
+                <div>
+                    <span class="badge badge-get">GET</span>
+                    <span class="badge badge-image">图片</span>
+                </div>
+            </div>
+            <p>根据营地ID查询用户信息并生成用户画像图片</p>
+            <div class="alert alert-info">
+                <strong>提示：</strong> 接口: <code>/user/</code> | 返回类型: 用户画像图片 | 参数必须填其一
+            </div>
+            <div class="form-group">
+                <label>用户ID (SID) <span class="required">*选填</span></label>
+                <input type="text" id="user-sid" placeholder="请输入用户ID">
+            </div>
+            <div class="form-group">
+                <label>营地ID (UID) <span class="required">可选</span></label>
+                <input type="text" id="user-uid" placeholder="留空则使用已绑定UID">
+            </div>
+            <button class="btn" onclick="getUserInfo()">查询用户信息</button>
+            <div class="response" id="user-response" style="display:none;">
+                <div class="response-title">响应结果:</div>
+                <div class="response-content" id="user-content"></div>
+            </div>
+        </div>
+
+        <!-- 战斗历史卡片 -->
+        <div class="api-section">
+            <div class="card-header">
+                <h2 class="card-title">战斗历史</h2>
+                <div>
+                    <span class="badge badge-get">GET</span>
+                    <span class="badge badge-image">图片</span>
+                </div>
+            </div>
+            <p>查询战斗历史记录并生成战斗历史图片</p>
+            <div class="alert alert-info">
+                <strong>提示：</strong> 接口: <code>/battle/history</code> | 返回类型: 战斗历史图片 | 参数必须填其一
+            </div>
+            <div class="form-group">
+                <label>用户ID (SID) <span class="required">*选填</span></label>
+                <input type="text" id="battle-sid" placeholder="请输入用户ID">
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>对战类型 (opt)</label>
+                    <select id="battle-opt">
+                        <option value="">全部</option>
+                        <option value="排位">排位赛</option>
+                        <option value="巅峰">巅峰赛</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>营地ID (UID)</label>
+                    <input type="text" id="battle-uid" placeholder="留空则使用已绑定UID">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn" onclick="getBattleHistory()">查询战斗历史</button>
+                <button class="btn" onclick="getBattlePreview()" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">预览战斗统计</button>
+            </div>
+            <div class="response" id="battle-response" style="display:none;">
+                <div class="response-title">响应结果:</div>
+                <div class="response-content" id="battle-content"></div>
+            </div>
+        </div>
+
+        <!-- 绑定管理卡片 -->
+        <div class="api-section">
+            <div class="card-header">
+                <h2 class="card-title">绑定管理</h2>
+                <span class="badge badge-get">GET</span>
+            </div>
+            <p>绑定、解除绑定、切换和查询已绑定的用户ID</p>
+            <div class="alert alert-info">
+                <strong>提示：</strong> 接口组: <code>/bind/*</code> | 包括: 绑定 / 解除绑定 / 切换 / 查询 / 重载
+            </div>
+
+            <div class="form-group">
+                <label>用户ID (SID)</label>
+                <input type="text" id="bind-sid" placeholder="请输入用户ID">
             </div>
             <div class="form-group">
                 <label>营地ID (UID)</label>
-                <input type="text" id="battle-uid" placeholder="留空则使用已绑定UID">
+                <input type="text" id="bind-uid" placeholder="请输入营地ID">
             </div>
-        </div>
-        <button class="btn" onclick="getBattleHistory()">查询战斗历史</button>
-        <div class="response" id="battle-response" style="display:none;">
-            <div class="response-title">响应结果:</div>
-            <div class="response-content" id="battle-content"></div>
-        </div>
-    </div>
+            
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+                <button class="btn" onclick="bindUser()">绑定用户</button>
+                <button class="btn" onclick="unbindUser()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">解除绑定</button>
+            </div>
 
-    <!-- 绑定管理接口 -->
-    <div class="api-section">
-        <h2>绑定管理 <span class="badge badge-get">GET</span></h2>
-        <p>绑定、解除绑定、切换和查询已绑定的用户ID</p>
-        <div class="alert alert-info">
-            <strong>提示：</strong> 接口组: <code>/bind/*</code> | 包括: 绑定 / 解除绑定 / 切换 / 查询 / 重载
-        </div>
-
-        <!-- 绑定 -->
-        <div class="form-group">
-            <label>用户ID (SID)</label>
-            <input type="text" id="bind-sid" placeholder="请输入用户ID">
-        </div>
-        <div class="form-group">
-            <label>营地ID (UID)</label>
-            <input type="text" id="bind-uid" placeholder="请输入营地ID">
-        </div>
-        <button class="btn" onclick="bindUser()">绑定用户</button>
-        <button class="btn" onclick="unbindUser()"
-                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">解除绑定
-        </button>
-
-        <!-- 切换绑定 -->
-        <div style="margin-top: 20px;">
             <div class="form-group">
                 <label>切换绑定的营地ID (UID) <span class="required">可选</span></label>
                 <input type="text" id="switch-uid" placeholder="留空则顺序切换">
             </div>
-            <button class="btn" onclick="switchBind()"
-                    style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">切换绑定
-            </button>
+            <button class="btn" onclick="switchBind()" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); margin-bottom: 20px;">切换绑定</button>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn" onclick="getBindList()" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">查询绑定列表</button>
+                <button class="btn" onclick="reloadBind()" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">重载配置</button>
+            </div>
+
+            <div class="response" id="bind-response" style="display:none;">
+                <div class="response-title">响应结果:</div>
+                <div class="response-content" id="bind-content"></div>
+            </div>
         </div>
 
-        <!-- 查询绑定 -->
-        <div style="margin-top: 20px;">
-            <button class="btn" onclick="getBindList()"
-                    style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">查询绑定列表
-            </button>
-            <button class="btn" onclick="reloadBind()"
-                    style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">重载配置
-            </button>
+        <!-- UID查询卡片 -->
+        <div class="api-section">
+            <div class="card-header">
+                <h2 class="card-title">UID查询</h2>
+                <span class="badge badge-get">GET</span>
+            </div>
+            <p>查询用户已绑定的营地ID信息</p>
+            <div class="alert alert-info">
+                <strong>提示：</strong> 接口: <code>/uid/query</code> | 返回类型: 文本信息
+            </div>
+            <div class="form-group">
+                <label>用户ID (SID) <span class="required">*必填</span></label>
+                <input type="text" id="uid-sid" placeholder="请输入用户ID">
+            </div>
+            <div class="form-group">
+                <label>营地ID (UID) <span class="required">*必填</span></label>
+                <input type="text" id="uid-uid" placeholder="请输入营地ID">
+            </div>
+            <button class="btn" onclick="queryUid()" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);">查询UID信息</button>
+            <div class="response" id="uid-response" style="display:none;">
+                <div class="response-title">响应结果:</div>
+                <div class="response-content" id="uid-content"></div>
+            </div>
         </div>
 
-        <div class="response" id="bind-response" style="display:none;">
-            <div class="response-title">响应结果:</div>
-            <div class="response-content" id="bind-content"></div>
+        <!-- 英雄数据卡片 -->
+        <div class="api-section">
+            <div class="card-header">
+                <h2 class="card-title">英雄数据</h2>
+                <span class="badge badge-get">GET</span>
+            </div>
+            <p>获取王者荣耀英雄列表和详细信息</p>
+            <div class="alert alert-info">
+                <strong>提示：</strong> 接口: <code>/hero/list</code> | 返回类型: JSON英雄数据
+            </div>
+            <button class="btn" onclick="getHeroList()" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">获取英雄列表</button>
+            <div class="response" id="hero-response" style="display:none;">
+                <div class="response-title">响应结果:</div>
+                <div class="response-content" id="hero-content"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -521,6 +628,31 @@
         showResponse('battle-response', 'battle-content', result, true);
 
         btn.innerHTML = '查询战斗历史';
+        btn.disabled = false;
+    }
+    
+    // 查询战斗预览统计
+    async function getBattlePreview() {
+        const sid = document.getElementById('battle-sid').value;
+
+        const opt = document.getElementById('battle-opt').value;
+        const uid = document.getElementById('battle-uid').value;
+        const params = {sid};
+        if (opt) params.opt = opt;
+        if (uid) params.uid = uid;
+        if (!sid && !uid) {
+            alert('参数不能都为空');
+            return;
+        }
+
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading"></span> 查询中...';
+        btn.disabled = true;
+
+        const result = await makeRequest('/battle/preview', params, false);
+        showResponse('battle-response', 'battle-content', result, false);
+
+        btn.innerHTML = '预览战斗统计';
         btn.disabled = false;
     }
 
@@ -637,6 +769,40 @@
         showResponse('bind-response', 'bind-content', result, false);
 
         btn.innerHTML = '重载配置';
+        btn.disabled = false;
+    }
+
+    // 查询UID信息
+    async function queryUid() {
+        const sid = document.getElementById('uid-sid').value;
+        const uid = document.getElementById('uid-uid').value;
+
+        if (!sid || !uid) {
+            alert('请输入用户ID和营地ID');
+            return;
+        }
+
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading"></span> 查询中...';
+        btn.disabled = true;
+
+        const result = await makeRequest('/uid/query', {sid, uid}, false);
+        showResponse('uid-response', 'uid-content', result, false);
+
+        btn.innerHTML = '查询UID信息';
+        btn.disabled = false;
+    }
+
+    // 获取英雄列表
+    async function getHeroList() {
+        const btn = event.target;
+        btn.innerHTML = '<span class="loading"></span> 获取中...';
+        btn.disabled = true;
+
+        const result = await makeRequest('/hero/list', {}, false);
+        showResponse('hero-response', 'hero-content', result, false);
+
+        btn.innerHTML = '获取英雄列表';
         btn.disabled = false;
     }
 </script>

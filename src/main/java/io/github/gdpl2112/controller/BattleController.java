@@ -351,6 +351,249 @@ public class BattleController {
         return new String[]{battleType, gameSvr, relaySvr, gameSeq};
     }
 
+    /**
+     * 预览接口 - 返回文字形式的对战统计信息
+     *
+     * @param sid 要查询的ID
+     * @param opt 选项 排位..巅峰..
+     * @param uid 营地ID
+     * @return 文字形式的统计信息
+     */
+    @RequestMapping("/preview")
+    public Object preview(
+            @RequestParam(name = "sid", required = false, defaultValue = "") String sid,
+            @RequestParam(name = "opt", required = false, defaultValue = "") String opt,
+            @RequestParam(name = "uid", required = false, defaultValue = "") String uid
+    ) {
+        WzryDpApplication.LOCK.lock();
+        try {
+            if (Judge.isEmpty(uid)) {
+                if (Judge.isNotEmpty(sid)) uid = bindConfig.getBind(sid);
+            }
+            if (Judge.isEmpty(uid)) {
+                return ResponseEntity.badRequest().body("未绑定UID");
+            }
+
+            log.info("start preview battle history: {}", sid);
+
+            Integer optn = null;
+            try {
+                optn = filterToOpt(opt);
+            } catch (RuntimeException e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+
+            // 获取用户角色信息
+            UserRoleResult userRoleResult = userRoleFuns.getUserRole(uid);
+            if (userRoleResult.getReturnCode() != 0) {
+                return ResponseEntity.badRequest().body(userRoleResult.getReturnMsg());
+            }
+
+            Map<String, Object> rData = userRoleResult.getData().get(0);
+            String roleId = rData.get("roleId").toString();
+
+            // 获取对战历史数据
+            List<Object> battleList = new LinkedList<>();
+            if (optn < 100) {
+                BattleResult battleResult = battleHistory.getBattleHistory(uid, optn);
+                if (battleResult == null || battleResult.getReturnCode() != 0)
+                    return ResponseEntity.badRequest().body(battleResult.getReturnMsg());
+                battleList.addAll(battleResult.getData().getList());
+            } else {
+                Integer serverId = (Integer) rData.get("serverId");
+                int lt = Math.toIntExact(System.currentTimeMillis() / 1000);
+                //查询单个英雄
+                while (true) {
+                    BattleOneResult result = battleHistory.getBattleOneHistory(serverId, roleId, optn, lt);
+                    DataZjList list = result.getData();
+                    battleList.addAll(list.getZjList());
+                    if (battleList.size() >= 12) break;
+                    if (list.getZjList().size() >= 5) {
+                        JSONObject endOne = (JSONObject) battleList.get(battleList.size() - 1);
+                        lt = Math.toIntExact(endOne.getLongValue("gameseq"));
+                    } else break;
+                }
+            }
+
+            // 统计对战数据
+            StringBuilder result = new StringBuilder();
+            result.append("成功查询到你的对战记录\n\n");
+
+            // 统计各种对战类型
+            Map<String, Integer> battleTypeCount = new HashMap<>();
+            Map<String, Integer> winCount = new HashMap<>();
+            // 专门统计排位赛子类型
+            Map<String, Integer> rankSubTypeCount = new HashMap<>();
+            Map<String, Integer> rankSubTypeWinCount = new HashMap<>();
+            int totalKills = 0, totalDeaths = 0, totalAssists = 0;
+            int totalWins = 0;
+            int totalRankGames = 0;
+            int totalRankWins = 0;
+
+            for (Object battleObj : battleList) {
+                JSONObject battle = (JSONObject) battleObj;
+                String mapName = battle.getString("mapName");
+                String desc = battle.getString("desc");
+                if (Judge.isEmpty(desc)) desc = battle.getString("matchDesc");
+
+                // 确定对战类型
+                String battleType = getBattleType(mapName, desc, opt);
+                String mainType = getMainBattleType(battleType);
+
+                battleTypeCount.put(mainType, battleTypeCount.getOrDefault(mainType, 0) + 1);
+
+                // 统计胜负
+                int gameResult = battle.getIntValue("gameresult");
+                if (gameResult == 1) {
+                    totalWins++;
+                    winCount.put(mainType, winCount.getOrDefault(mainType, 0) + 1);
+                }
+
+                // 如果是排位赛，统计子类型
+                if (mainType.equals("排位赛")) {
+                    totalRankGames++;
+                    if (gameResult == 1) {
+                        totalRankWins++;
+                    }
+                    if (battleType.startsWith("排位赛 ")) {
+                        rankSubTypeCount.put(battleType, rankSubTypeCount.getOrDefault(battleType, 0) + 1);
+                        if (gameResult == 1) {
+                            rankSubTypeWinCount.put(battleType, rankSubTypeWinCount.getOrDefault(battleType, 0) + 1);
+                        }
+                    }
+                }
+
+                // 统计KDA
+                totalKills += battle.getIntValue("killcnt");
+                totalDeaths += battle.getIntValue("deadcnt");
+                totalAssists += battle.getIntValue("assistcnt");
+            }
+
+            // 构建统计结果
+            result.append("对战类型统计:\n");
+            for (Map.Entry<String, Integer> entry : battleTypeCount.entrySet()) {
+                String type = entry.getKey();
+                int count = entry.getValue();
+                int wins = winCount.getOrDefault(type, 0);
+                double winRate = count > 0 ? (double) wins / count * 100 : 0;
+
+                if (type.equals("排位赛") && !rankSubTypeCount.isEmpty()) {
+                    // 排位赛特殊处理：显示总局数和子类型详情
+                    result.append(String.format("  %s: %d局 其中\n", type, count));
+                    for (Map.Entry<String, Integer> subEntry : rankSubTypeCount.entrySet()) {
+                        String subType = subEntry.getKey();
+                        int subCount = subEntry.getValue();
+                        int subWins = rankSubTypeWinCount.getOrDefault(subType, 0);
+                        double subWinRate = subCount > 0 ? (double) subWins / subCount * 100 : 0;
+                        String displayName = subType.replace("排位赛 ", "");
+                        result.append(String.format("    %s: %d局 (胜率: %.1f%%)\n", displayName, subCount, subWinRate));
+                    }
+                } else {
+                    // 其他类型正常显示
+                    result.append(String.format("  %s: %d局 (胜率: %.1f%%)\n", type, count, winRate));
+                }
+            }
+
+            result.append("\n总体统计:\n");
+            result.append(String.format("  总场次: %d局\n", battleList.size()));
+            if (!battleList.isEmpty()) {
+                double overallWinRate = (double) totalWins / battleList.size() * 100;
+                result.append(String.format("  总胜率: %.1f%%\n", overallWinRate));
+                double avgKills = (double) totalKills / battleList.size();
+                double avgDeaths = (double) totalDeaths / battleList.size();
+                double avgAssists = (double) totalAssists / battleList.size();
+                result.append(String.format("  平均KDA: %.1f / %.1f / %.1f\n", avgKills, avgDeaths, avgAssists));
+
+                // 计算平均评分
+                double totalGrade = 0;
+                int gradeCount = 0;
+                for (Object battleObj : battleList) {
+                    JSONObject battle = (JSONObject) battleObj;
+                    String grade = battle.getString("gradeGame");
+                    if (Judge.isEmpty(grade)) grade = battle.getString("grade");
+                    if (Judge.isNotEmpty(grade)) {
+                        try {
+                            totalGrade += Double.parseDouble(grade);
+                            gradeCount++;
+                        } catch (NumberFormatException e) {
+                            // 忽略无法解析的评分
+                        }
+                    }
+                }
+                if (gradeCount > 0) {
+                    double avgGrade = totalGrade / gradeCount;
+                    result.append(String.format("  平均评分: %.1f\n", avgGrade));
+                }
+            }
+
+            // 添加用户在线状态
+            String game_text;
+            int online = (int) rData.get("gameOnline");
+            if (online > 0) {
+                game_text = "游戏在线";
+            } else {
+                int appOnline = (int) rData.get("appOnline");
+                if (appOnline == 0) game_text = "离线";
+                else game_text = "营地在线";
+            }
+//            result.append(String.format("\n当前状态: %s", game_text));
+
+            log.info("end preview battle list");
+            return ResponseEntity.ok(result.toString());
+
+        } catch (Exception e) {
+            log.error("getBattlePreviewError: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("查询失败: " + e.getMessage());
+        } finally {
+            WzryDpApplication.LOCK.unlock();
+        }
+    }
+
+    /**
+     * 获取对战类型的主要类别
+     */
+    private String getMainBattleType(String battleType) {
+        if (battleType.startsWith("排位赛")) return "排位赛";
+        return battleType;
+    }
+
+    /**
+     * 根据地图名称和描述确定对战类型
+     */
+    private String getBattleType(String mapName, String desc, String opt) {
+        if (Judge.isNotEmpty(opt)) {
+            if (opt.startsWith("排位")) return "排位赛";
+            else if (opt.startsWith("巅峰")) return "巅峰赛";
+            else if (opt.startsWith("标准")) return "匹配赛";
+            else if (opt.startsWith("娱乐")) return "娱乐模式";
+        }
+
+        // 根据地图名称判断 - 优先处理具体的排位赛类型
+        if (Judge.isNotEmpty(mapName)) {
+            if (mapName.contains("排位赛 五排")) return "排位赛 五排";
+            else if (mapName.contains("排位赛 三排")) return "排位赛 三排";
+            else if (mapName.contains("排位赛 双排")) return "排位赛 双排";
+            else if (mapName.contains("排位")) return "排位赛";
+            else if (mapName.contains("巅峰")) return "巅峰赛";
+            else if (mapName.contains("王者峡谷")) return "匹配赛";
+            else if (mapName.contains("无限") || mapName.contains("火焰") || mapName.contains("长平"))
+                return "娱乐模式";
+        }
+
+        // 根据描述判断
+        if (Judge.isNotEmpty(desc)) {
+            if (desc.contains("排位赛 五排")) return "排位赛 五排";
+            else if (desc.contains("排位赛 三排")) return "排位赛 三排";
+            else if (desc.contains("排位赛 双排")) return "排位赛 双排";
+            else if (desc.contains("排位")) return "排位赛";
+            else if (desc.contains("巅峰")) return "巅峰赛";
+            else if (desc.contains("匹配")) return "匹配赛";
+            else if (desc.contains("娱乐")) return "娱乐模式";
+        }
+
+        return "其他模式";
+    }
+
     private Integer filterToOpt(String opt) {
         if (Judge.isEmpty(opt)) return 0;
         else if (opt.startsWith("排位")) return 1;

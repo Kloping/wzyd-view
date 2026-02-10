@@ -20,6 +20,7 @@ DEMO-PRE (项目预览) : http://wv.kloping.top/
 | 接口路径 | 请求方法 | 参数说明 | 响应类型 | 功能描述 |
 |---------|----------|----------|----------|----------|
 | `/battle/history` | GET | `sid` (必填), [opt](file://org\json\JSONObject#L27-L27) (可选，默认为空), `uid` (可选，默认为空) | Object | 获取战斗历史记录并生成战斗历史图片 |
+| `/battle/preview` | GET | `sid` (可选), [opt](file://org\json\JSONObject#L27-L27) (可选，默认为空), `uid` (可选，默认为空) | string | 预览战斗历史记录的文字统计信息 |
 
 > opt 可以是 排位,巅峰,标注,娱乐 或 _英雄名_;
 > 
