@@ -425,17 +425,15 @@ public class BattleController {
             // 专门统计排位赛子类型
             Map<String, Integer> rankSubTypeCount = new HashMap<>();
             Map<String, Integer> rankSubTypeWinCount = new HashMap<>();
-            int totalKills = 0, totalDeaths = 0, totalAssists = 0;
             int totalWins = 0;
-            int totalRankGames = 0;
-            int totalRankWins = 0;
-
+            int mvpCount = 0;
             for (Object battleObj : battleList) {
                 JSONObject battle = (JSONObject) battleObj;
                 String mapName = battle.getString("mapName");
                 String desc = battle.getString("desc");
                 if (Judge.isEmpty(desc)) desc = battle.getString("matchDesc");
-
+                String mvpUrlV3 = battle.getString("mvpUrlV3");
+                if (Judge.isNotEmpty(mvpUrlV3)) mvpCount++;
                 // 确定对战类型
                 String battleType = getBattleType(mapName, desc, opt);
                 String mainType = getMainBattleType(battleType);
@@ -451,10 +449,6 @@ public class BattleController {
 
                 // 如果是排位赛，统计子类型
                 if (mainType.equals("排位赛")) {
-                    totalRankGames++;
-                    if (gameResult == 1) {
-                        totalRankWins++;
-                    }
                     if (battleType.startsWith("排位赛 ")) {
                         rankSubTypeCount.put(battleType, rankSubTypeCount.getOrDefault(battleType, 0) + 1);
                         if (gameResult == 1) {
@@ -462,15 +456,17 @@ public class BattleController {
                         }
                     }
                 }
-
-                // 统计KDA
-                totalKills += battle.getIntValue("killcnt");
-                totalDeaths += battle.getIntValue("deadcnt");
-                totalAssists += battle.getIntValue("assistcnt");
             }
-
+            result.append("总体统计:\n");
+            result.append(String.format("  总场次: %d局\n", battleList.size()));
+            //  MVP 次数
+            if (mvpCount > 0) result.append(String.format("  MVP次数: %d次\n", mvpCount));
+            if (!battleList.isEmpty()) {
+                double overallWinRate = (double) totalWins / battleList.size() * 100;
+                result.append(String.format("  总胜率: %.1f%%\n", overallWinRate));
+            }
             // 构建统计结果
-            result.append("对战类型统计:\n");
+            result.append("\n对战类型统计:\n");
             for (Map.Entry<String, Integer> entry : battleTypeCount.entrySet()) {
                 String type = entry.getKey();
                 int count = entry.getValue();
@@ -479,7 +475,7 @@ public class BattleController {
 
                 if (type.equals("排位赛") && !rankSubTypeCount.isEmpty()) {
                     // 排位赛特殊处理：显示总局数和子类型详情
-                    result.append(String.format("  %s: %d局 其中\n", type, count));
+                    result.append(String.format("  %s: %d局 (胜率: %.1f%%)\n", type, count, winRate));
                     for (Map.Entry<String, Integer> subEntry : rankSubTypeCount.entrySet()) {
                         String subType = subEntry.getKey();
                         int subCount = subEntry.getValue();
@@ -494,49 +490,6 @@ public class BattleController {
                 }
             }
 
-            result.append("\n总体统计:\n");
-            result.append(String.format("  总场次: %d局\n", battleList.size()));
-            if (!battleList.isEmpty()) {
-                double overallWinRate = (double) totalWins / battleList.size() * 100;
-                result.append(String.format("  总胜率: %.1f%%\n", overallWinRate));
-                double avgKills = (double) totalKills / battleList.size();
-                double avgDeaths = (double) totalDeaths / battleList.size();
-                double avgAssists = (double) totalAssists / battleList.size();
-                result.append(String.format("  平均KDA: %.1f / %.1f / %.1f\n", avgKills, avgDeaths, avgAssists));
-
-                // 计算平均评分
-                double totalGrade = 0;
-                int gradeCount = 0;
-                for (Object battleObj : battleList) {
-                    JSONObject battle = (JSONObject) battleObj;
-                    String grade = battle.getString("gradeGame");
-                    if (Judge.isEmpty(grade)) grade = battle.getString("grade");
-                    if (Judge.isNotEmpty(grade)) {
-                        try {
-                            totalGrade += Double.parseDouble(grade);
-                            gradeCount++;
-                        } catch (NumberFormatException e) {
-                            // 忽略无法解析的评分
-                        }
-                    }
-                }
-                if (gradeCount > 0) {
-                    double avgGrade = totalGrade / gradeCount;
-                    result.append(String.format("  平均评分: %.1f\n", avgGrade));
-                }
-            }
-
-            // 添加用户在线状态
-            String game_text;
-            int online = (int) rData.get("gameOnline");
-            if (online > 0) {
-                game_text = "游戏在线";
-            } else {
-                int appOnline = (int) rData.get("appOnline");
-                if (appOnline == 0) game_text = "离线";
-                else game_text = "营地在线";
-            }
-//            result.append(String.format("\n当前状态: %s", game_text));
 
             log.info("end preview battle list");
             return ResponseEntity.ok(result.toString());
@@ -561,19 +514,12 @@ public class BattleController {
      * 根据地图名称和描述确定对战类型
      */
     private String getBattleType(String mapName, String desc, String opt) {
-        if (Judge.isNotEmpty(opt)) {
-            if (opt.startsWith("排位")) return "排位赛";
-            else if (opt.startsWith("巅峰")) return "巅峰赛";
-            else if (opt.startsWith("标准")) return "匹配赛";
-            else if (opt.startsWith("娱乐")) return "娱乐模式";
-        }
-
         // 根据地图名称判断 - 优先处理具体的排位赛类型
         if (Judge.isNotEmpty(mapName)) {
             if (mapName.contains("排位赛 五排")) return "排位赛 五排";
             else if (mapName.contains("排位赛 三排")) return "排位赛 三排";
             else if (mapName.contains("排位赛 双排")) return "排位赛 双排";
-            else if (mapName.contains("排位")) return "排位赛";
+            else if (mapName.contains("排位")) return "排位赛 单排";
             else if (mapName.contains("巅峰")) return "巅峰赛";
             else if (mapName.contains("王者峡谷")) return "匹配赛";
             else if (mapName.contains("无限") || mapName.contains("火焰") || mapName.contains("长平"))
