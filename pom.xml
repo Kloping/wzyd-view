@@ -63,7 +63,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.24</version>
+            <version>1.18.42</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -93,6 +93,15 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version> <!-- 使用较新版本 -->
+                <configuration>
+                    <source>17</source> <!-- 与你的JDK版本一致 -->
+                    <target>17</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>
