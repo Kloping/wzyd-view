@@ -15,12 +15,12 @@ import java.util.concurrent.locks.ReentrantLock;
 @EnableScheduling
 public class WzryDpApplication {
 
-    public static final Lock LOCK = new ReentrantLock();
+//    public static final Lock LOCK = new ReentrantLock();
 
     public static void main(String[] args) {
-        System.out.println("WzydView v1.3 pre start");
+        System.out.println("WzydView v1.3.1 pre start");
         SpringApplication.run(WzryDpApplication.class, args);
-        System.out.println("WzydView v1.3 started successful!");
+        System.out.println("WzydView v1.3.1 started successful!");
     }
 
     @Bean

@@ -56,7 +56,7 @@ public class UserInfoController {
             , @RequestParam(name = "uid", required = false, defaultValue = "") String uid
             , HttpServletResponse response
     ) {
-        WzryDpApplication.LOCK.lock();
+//        WzryDpApplication.LOCK.lock();
         try {
             if (Judge.isEmpty(uid)) {
                 if (Judge.isNotEmpty(sid)) uid = bindConfig.getBind(sid);
@@ -255,7 +255,7 @@ public class UserInfoController {
             }
             return null;
         } finally {
-            WzryDpApplication.LOCK.unlock();
+//            WzryDpApplication.LOCK.unlock();
         }
     }
 

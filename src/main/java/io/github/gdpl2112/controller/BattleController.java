@@ -73,7 +73,7 @@ public class BattleController {
             @RequestParam(name = "uid", required = false, defaultValue = "") String uid,
             HttpServletResponse response
     ) {
-        WzryDpApplication.LOCK.lock();
+//        WzryDpApplication.LOCK.lock();
         try {
             if (Judge.isEmpty(uid)) {
                 if (Judge.isNotEmpty(sid)) uid = bindConfig.getBind(sid);
@@ -182,7 +182,7 @@ public class BattleController {
             log.error("getBattleHistoryError: {}", e.getMessage());
             return null;
         } finally {
-            WzryDpApplication.LOCK.unlock();
+//            WzryDpApplication.LOCK.unlock();
         }
     }
 
@@ -365,7 +365,7 @@ public class BattleController {
             @RequestParam(name = "opt", required = false, defaultValue = "") String opt,
             @RequestParam(name = "uid", required = false, defaultValue = "") String uid
     ) {
-        WzryDpApplication.LOCK.lock();
+//        WzryDpApplication.LOCK.lock();
         try {
             if (Judge.isEmpty(uid)) {
                 if (Judge.isNotEmpty(sid)) uid = bindConfig.getBind(sid);
@@ -498,7 +498,7 @@ public class BattleController {
             log.error("getBattlePreviewError: {}", e.getMessage());
             return ResponseEntity.badRequest().body("查询失败: " + e.getMessage());
         } finally {
-            WzryDpApplication.LOCK.unlock();
+//            WzryDpApplication.LOCK.unlock();
         }
     }
 
