@@ -568,6 +568,6 @@ public class BattleController {
             }
             throw new RuntimeException("未找到英雄: " + opt + ", 可能的英雄有: \n" + sbtips.toString().trim());
         }
-        return 0;
+        return hi;
     }
 }
