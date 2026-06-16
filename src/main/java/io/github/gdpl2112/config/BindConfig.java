@@ -35,6 +35,7 @@ public class BindConfig {
         UserToken token = new UserToken();
         token.user = jdata.getString("user");
         token.token = jdata.getString("token");
+        token.key = jdata.getString("key");
         return token;
     }
 
