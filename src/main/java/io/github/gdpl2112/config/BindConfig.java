@@ -132,6 +132,7 @@ public class BindConfig {
         String str = FileUtils.getStringFromFile(file.getAbsolutePath());
         if (Judge.isEmpty(str)) {
             str = "{\n" +
+                    "  \"key\": \"a1b2c3\",\n" +
                     "  \"user\": \"12345\",\n" +
                     "  \"token\": \"{token}\",\n" +
                     "  \"bind\": {\n" +
@@ -152,5 +153,7 @@ public class BindConfig {
         public String user;
 
         public String token;
+
+        public String key;
     }
 }

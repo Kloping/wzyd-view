@@ -2,9 +2,11 @@ package io.github.gdpl2112.funs;
 
 import com.alibaba.fastjson2.JSON;
 import io.github.gdpl2112.HttpApi;
+import io.github.gdpl2112.config.BindConfig;
 import io.github.gdpl2112.funs.dto.BattleDetailResult;
 import io.github.gdpl2112.funs.dto.BattleOneResult;
 import io.github.gdpl2112.funs.dto.BattleResult;
+import io.github.gdpl2112.utils.CampDecryptor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -42,6 +44,10 @@ public class BattleHistory {
     public static final String ONE_HERO_DATA_FORMAT = """
             {"heroid": "%s", "lastTime": %s, "roleId": "%s", "recommendPrivacy": 0}
             """;
+
+    @Autowired
+    BindConfig bindConfig;
+
     @Autowired
     HttpApi api;
 
@@ -59,8 +65,9 @@ public class BattleHistory {
                     .ignoreHttpErrors(true)
                     .ignoreContentType(true).method(Connection.Method.POST)
                     .execute();
-            String json = response.body();
-            return JSON.parseObject(json, BattleResult.class);
+            String base64data = response.body();
+            String data = CampDecryptor.decryptResponse(base64data, bindConfig.getToken().getKey());
+            return JSON.parseObject(data, BattleResult.class);
         } catch (IOException e) {
             log.error("getBattleHistoryError: {}", friendId);
             BattleResult result = new BattleResult();

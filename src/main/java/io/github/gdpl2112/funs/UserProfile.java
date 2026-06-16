@@ -2,8 +2,10 @@ package io.github.gdpl2112.funs;
 
 import com.alibaba.fastjson2.JSONObject;
 import io.github.gdpl2112.HttpApi;
+import io.github.gdpl2112.config.BindConfig;
 import io.github.gdpl2112.funs.dto.UserProfileResult;
 import io.github.gdpl2112.funs.dto.UserRoleResult;
+import io.github.gdpl2112.utils.CampDecryptor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -35,6 +37,9 @@ public class UserProfile {
             """;
     @Autowired
     HttpApi api;
+
+    @Autowired
+    BindConfig bindConfig;
 
     public UserRoleResult getUserRole(String yd_user_id) {
         log.info("getUserRole: {}", yd_user_id);
@@ -87,7 +92,9 @@ public class UserProfile {
                     .method(Connection.Method.POST)
                     .execute();
             log.debug("getUserProfileIndexResponse:{}", response.body());
-            return JSONObject.parseObject(response.body(), UserProfileResult.class);
+            String base64data = response.body();
+            String data = CampDecryptor.decryptResponse(base64data, bindConfig.getToken().getKey());
+            return JSONObject.parseObject(data, UserProfileResult.class);
         } catch (IOException e) {
             log.error("getUserProfileIndexError:{}", yd_user_id, e);
         }
@@ -104,7 +111,9 @@ public class UserProfile {
                     .method(Connection.Method.POST)
                     .execute();
             log.debug("getUserProfileHeroListResponse:{}", response.body());
-            return JSONObject.parseObject(response.body(), UserProfileResult.class);
+            String base64data = response.body();
+            String data = CampDecryptor.decryptResponse(base64data, bindConfig.getToken().getKey());
+            return JSONObject.parseObject(data, UserProfileResult.class);
         } catch (IOException e) {
             log.error("getUserProfileHeroListError:{}", yd_user_id, e);
         }
