@@ -143,6 +143,10 @@ public class BindConfig {
             FileUtils.putStringInFile(str, file);
         }
         jdata = JSONObject.parseObject(str);
+        String user = jdata.getString("user");
+        String token = jdata.getString("token");
+        String key = jdata.getString("key");
+        System.out.println("已加载配置: user: " + user + " token: " + token + " key: " + key);
     }
 
     @Data
