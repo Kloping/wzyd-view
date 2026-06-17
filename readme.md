@@ -37,6 +37,60 @@ DEMO-PRE (项目预览) : http://wv.kloping.top/
 | `/bind/get` | GET | `sid` (必填) |string| 获取已绑定的用户ID列表 |
 | `/bind/reload` | GET | 无参数 |string| 重载绑定配置 |
 
+### IntegratedQueryController
+| 接口路径 | 请求方法 | 参数说明 | 响应类型 | 功能描述 |
+|---------|----------|----------|----------|----------|
+| `/integrated/query` | GET | `name` (可选), `uid` (可选), `opt` (可选，默认全部) | JSON | 集成查询用户+用户信息+战斗信息 |
+
+**使用说明：**
+
+1. **通过昵称查询**: `/integrated/query?name=xxx`
+   - 如果查到 **0** 个用户 → 返回错误提示
+   - 如果查到 **1** 个用户 → 自动返回该用户的完整信息（用户信息 + 战斗历史统计）
+   - 如果查到 **多个** 用户 → 返回用户列表，需要选择（`needSelect: true`）
+
+2. **通过UID直接查询**: `/integrated/query?uid=xxx`
+   - 直接返回指定用户的完整信息
+
+3. **战斗类型筛选**: `/integrated/query?uid=xxx&opt=排位`
+   - `opt` 可选值：`排位` / `巅峰` / `标准` / `娱乐`
+   - 默认不筛选，返回全部战斗历史
+
+**响应示例（多用户需要选择）：**
+```json
+{
+  "needSelect": true,
+  "message": "查询到多个用户，请选择其中一个进行查询",
+  "userCount": 3,
+  "users": [
+    { "uid": "123456", "name": "Player1", "region": "微信XX区", "level": "30", "avatar": "...", "dw": "最强王者" },
+    ...
+  ]
+}
+```
+
+**响应示例（单个用户完整信息）：**
+```json
+{
+  "uid": "123456",
+  "userInfo": { "roleId": "...", "roleName": "...", "roleDesc": "...", ... },
+  "profile": { ... },
+  "profileIndex": { ... },
+  "heroList": { ... },
+  "battleStats": {
+    "totalCount": 12,
+    "winCount": 8,
+    "mvpCount": 2,
+    "winRate": "66.7%",
+    "typeStats": [
+      { "type": "排位赛", "count": 5, "wins": 3, "winRate": "60.0%" },
+      ...
+    ]
+  },
+  "battleList": [ ... ]
+}
+```
+
 ---
 
 ## 免责声明
