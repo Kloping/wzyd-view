@@ -71,6 +71,10 @@ public class ResConfig {
             if (file.exists()) return file;
             log.info("downloading {} to {}", url, file.getAbsolutePath());
             byte[] bytes = UrlUtils.getBytesFromHttpUrl(url);
+            if (bytes == null) {
+                log.warn("download failed, url: {}, returned null bytes", url);
+                return file;
+            }
             try {
                 FileOutputStream fos = new FileOutputStream(file);
                 fos.write(bytes);
