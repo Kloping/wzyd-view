@@ -239,21 +239,25 @@ public class BattleController {
             JSONObject skill = brc.getJSONObject("skill");
             String skill_path = skill.get("skillId") + ".png";
             File skill_file = skillDir.saveIfNotExist(skill.getString("skillIcon"), skill_path);
-            BufferedImage skill_img = ImageIO.read(skill_file);
-            skill_img = BufferedImageUtils.image2size(45, 45, skill_img);
-            skill_img = BufferedImageUtils.cropToRoundedCorner(skill_img, 45);
-            Graphics bagr = bar_bg.getGraphics();
-            bagr.drawImage(skill_img, 390, 65, skill_mask.getWidth(), skill_mask.getHeight(), null);
+            BufferedImage skill_img = skill_file != null ? ImageIO.read(skill_file) : null;
+            if (skill_img != null) {
+                skill_img = BufferedImageUtils.image2size(45, 45, skill_img);
+                skill_img = BufferedImageUtils.cropToRoundedCorner(skill_img, 45);
+                Graphics bagr = bar_bg.getGraphics();
+                bagr.drawImage(skill_img, 390, 65, skill_mask.getWidth(), skill_mask.getHeight(), null);
+            }
             JSONArray equips = brc.getJSONArray("finalEquips");
             int eix = 1, eiy = -1;
             for (Object equipo : equips) {
                 JSONObject equip = (JSONObject) equipo;
                 int equip_id = equip.getIntValue("equipId");
                 File equip_file = equipDir.saveIfNotExist(equip.getString("equipIcon"), equip_id + ".png");
-                BufferedImage equip_img = ImageIO.read(equip_file);
-                equip_img = BufferedImageUtils.image2size(45, 45, equip_img);
-                equip_img = BufferedImageUtils.cropToRoundedCorner(equip_img, 45);
-                bgr.drawImage(equip_img, 392 + eix * 50, 63 + eiy * 50, skill_mask.getWidth(), skill_mask.getHeight(), null);
+                BufferedImage equip_img = equip_file != null ? ImageIO.read(equip_file) : null;
+                if (equip_img != null) {
+                    equip_img = BufferedImageUtils.image2size(45, 45, equip_img);
+                    equip_img = BufferedImageUtils.cropToRoundedCorner(equip_img, 45);
+                    bgr.drawImage(equip_img, 392 + eix * 50, 63 + eiy * 50, skill_mask.getWidth(), skill_mask.getHeight(), null);
+                }
                 eix += 1;
                 if (eix >= 4) {
                     eix = 1;
@@ -262,15 +266,17 @@ public class BattleController {
             }
         }
 
-        hero_path = avatarDir.saveIfNotExist(icon_path, hero_path.getName());
-        BufferedImage hero_img = ImageIO.read(hero_path);
-        if (hero_img.getHeight() > hero_img.getWidth()) {
-            int w = hero_img.getWidth();
-            hero_img = hero_img.getSubimage(0, 0, w, w);
+        File hero_file = avatarDir.saveIfNotExist(icon_path, hero_path.getName());
+        BufferedImage hero_img = hero_file != null ? ImageIO.read(hero_file) : null;
+        if (hero_img != null) {
+            if (hero_img.getHeight() > hero_img.getWidth()) {
+                int w = hero_img.getWidth();
+                hero_img = hero_img.getSubimage(0, 0, w, w);
+            }
+            hero_img = BufferedImageUtils.image2size(100, 100, hero_img);
+            hero_img = BufferedImageUtils.cropToRoundedCorner(hero_img, 100);
+            bgr.drawImage(hero_img, 79, 9, hero_mask.getWidth(), hero_mask.getHeight(), null);
         }
-        hero_img = BufferedImageUtils.image2size(100, 100, hero_img);
-        hero_img = BufferedImageUtils.cropToRoundedCorner(hero_img, 100);
-        bgr.drawImage(hero_img, 79, 9, hero_mask.getWidth(), hero_mask.getHeight(), null);
         bgr.drawImage(ring, 78, 8, null);
 
         Integer kill = battle.getIntValue("killcnt");

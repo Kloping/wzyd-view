@@ -68,12 +68,12 @@ public class ResConfig {
         public File saveIfNotExist(String url, String name) {
             File file = getFile(name);
             if (!file.exists()) file.getParentFile().mkdirs();
-            if (file.exists()) return file;
+            if (file.exists() && file.length() > 0) return file;
             log.info("downloading {} to {}", url, file.getAbsolutePath());
             byte[] bytes = UrlUtils.getBytesFromHttpUrl(url);
-            if (bytes == null) {
-                log.warn("download failed, url: {}, returned null bytes", url);
-                return file;
+            if (bytes == null || bytes.length == 0) {
+                log.warn("download failed, url: {}, returned null or empty bytes", url);
+                return null;
             }
             try {
                 FileOutputStream fos = new FileOutputStream(file);
@@ -81,6 +81,7 @@ public class ResConfig {
                 fos.close();
             } catch (IOException e) {
                 e.printStackTrace();
+                return null;
             }
             log.info("downloaded {} to {}", url, file.getAbsolutePath());
             return file;
