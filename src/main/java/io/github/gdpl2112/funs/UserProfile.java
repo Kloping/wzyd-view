@@ -75,8 +75,8 @@ public class UserProfile {
                     .method(Connection.Method.POST)
                     .execute();
             String responseBody = response.body();
-            log.debug("getUserProfileResponse:{}", responseBody);
             responseBody = CampDecryptor.decryptResponse(responseBody,bindConfig.getToken().getKey());
+            log.debug("getUserProfileResponse:{}", responseBody);
             return JSONObject.parseObject(responseBody, UserProfileResult.class);
         } catch (IOException e) {
             log.error("getUserProfileError:{}", yd_user_id, e);
@@ -93,9 +93,9 @@ public class UserProfile {
                     .requestBody(String.format(DATA_FORMAT_INDEX, yd_user_id, role_id))
                     .method(Connection.Method.POST)
                     .execute();
-            log.debug("getUserProfileIndexResponse:{}", response.body());
             String base64data = response.body();
             String data = CampDecryptor.decryptResponse(base64data, bindConfig.getToken().getKey());
+            log.debug("getUserProfileIndexResponse:{}", data);
             return JSONObject.parseObject(data, UserProfileResult.class);
         } catch (IOException e) {
             log.error("getUserProfileIndexError:{}", yd_user_id, e);
@@ -112,9 +112,9 @@ public class UserProfile {
                     .requestBody(String.format(DATA_FORMAT_HERO_LIST, yd_user_id, role_id))
                     .method(Connection.Method.POST)
                     .execute();
-            log.debug("getUserProfileHeroListResponse:{}", response.body());
             String base64data = response.body();
             String data = CampDecryptor.decryptResponse(base64data, bindConfig.getToken().getKey());
+            log.debug("getUserProfileHeroListResponse:{}", data);
             return JSONObject.parseObject(data, UserProfileResult.class);
         } catch (IOException e) {
             log.error("getUserProfileHeroListError:{}", yd_user_id, e);
