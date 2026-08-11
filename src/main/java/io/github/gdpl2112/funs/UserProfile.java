@@ -74,8 +74,10 @@ public class UserProfile {
                     .requestBody(String.format(FORMAT_DATA, yd_user_id, role_id))
                     .method(Connection.Method.POST)
                     .execute();
-            log.debug("getUserProfileResponse:{}", response.body());
-            return JSONObject.parseObject(response.body(), UserProfileResult.class);
+            String responseBody = response.body();
+            log.debug("getUserProfileResponse:{}", responseBody);
+            responseBody = CampDecryptor.decryptResponse(responseBody,bindConfig.getToken().getKey());
+            return JSONObject.parseObject(responseBody, UserProfileResult.class);
         } catch (IOException e) {
             log.error("getUserProfileError:{}", yd_user_id, e);
         }
