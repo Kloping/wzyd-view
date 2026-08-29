@@ -15,6 +15,7 @@ import io.github.kloping.judge.Judge;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,6 +27,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
 
@@ -184,6 +186,293 @@ public class BattleController {
         } finally {
 //            WzryDpApplication.LOCK.unlock();
         }
+    }
+
+    /**
+     * 返回战斗历史的文本详情。
+     *
+     * <p>数据源与 {@link #history(String, String, String, HttpServletResponse)} 相同，
+     * 但不生成图片，适合机器人、命令行等场景直接展示。</p>
+     */
+    @RequestMapping(value = "/history/text", produces = "text/plain;charset=UTF-8")
+    public ResponseEntity<String> historyText(
+            @RequestParam(name = "sid", required = false, defaultValue = "") String sid,
+            @RequestParam(name = "opt", required = false, defaultValue = "") String opt,
+            @RequestParam(name = "uid", required = false, defaultValue = "") String uid
+    ) {
+        try {
+            uid = resolveUid(sid, uid);
+            if (Judge.isEmpty(uid)) {
+                return textError("未绑定UID");
+            }
+
+            Integer optn;
+            try {
+                optn = filterToOpt(opt);
+            } catch (RuntimeException e) {
+                return textError(e.getMessage());
+            }
+
+            UserRoleResult userRoleResult = userRoleFuns.getUserRole(uid);
+            if (userRoleResult == null || !Objects.equals(userRoleResult.getReturnCode(), 0)) {
+                String message = userRoleResult == null ? "获取用户角色失败" : userRoleResult.getReturnMsg();
+                return textError(message);
+            }
+            if (userRoleResult.getData() == null || userRoleResult.getData().isEmpty()) {
+                return textError("未找到用户角色");
+            }
+
+            Map<String, Object> roleData = userRoleResult.getData().get(0);
+            String roleId = stringValue(roleData.get("roleId"));
+            List<Object> battleList = loadBattleList(uid, optn, roleData, roleId);
+            String text = buildHistoryText(battleList, opt);
+            log.info("end text battle history: {}", sid);
+            return textResponse(text);
+        } catch (Exception e) {
+            log.error("getBattleHistoryTextError: {}", e.getMessage(), e);
+            return textError("查询失败: " + e.getMessage());
+        }
+    }
+
+    private String resolveUid(String sid, String uid) {
+        if (Judge.isEmpty(uid) && Judge.isNotEmpty(sid)) {
+            uid = bindConfig.getBind(sid);
+        }
+        return uid;
+    }
+
+    private List<Object> loadBattleList(String uid, Integer optn, Map<String, Object> roleData, String roleId) {
+        List<Object> battleList = new LinkedList<>();
+        if (optn < 100) {
+            BattleResult battleResult = battleHistory.getBattleHistory(uid, optn);
+            if (battleResult == null) {
+                throw new RuntimeException("获取战绩失败");
+            }
+            if (!Objects.equals(battleResult.getReturnCode(), 0)) {
+                throw new RuntimeException(defaultMessage(battleResult.getReturnMsg(), "获取战绩失败"));
+            }
+            if (battleResult.getData() != null && battleResult.getData().getList() != null) {
+                battleList.addAll(battleResult.getData().getList());
+            }
+            return battleList;
+        }
+
+        Integer serverId = integerValue(roleData.get("serverId"));
+        if (serverId == null || Judge.isEmpty(roleId)) {
+            throw new RuntimeException("用户角色信息不完整");
+        }
+        int lastTime = Math.toIntExact(System.currentTimeMillis() / 1000);
+        for (int page = 0; page < 20 && battleList.size() < 12; page++) {
+            BattleOneResult result = battleHistory.getBattleOneHistory(serverId, roleId, optn, lastTime);
+            if (result == null || !Objects.equals(result.getReturnCode(), 0) || result.getData() == null
+                    || result.getData().getZjList() == null || result.getData().getZjList().isEmpty()) {
+                break;
+            }
+            int oldSize = battleList.size();
+            battleList.addAll(result.getData().getZjList());
+            if (battleList.size() == oldSize) {
+                break;
+            }
+            if (result.getData().getZjList().size() < 5) {
+                break;
+            }
+            JSONObject lastBattle = (JSONObject) battleList.get(battleList.size() - 1);
+            Long sequence = longValue(lastBattle, "gameseq", "gameSeq");
+            if (sequence == null) {
+                break;
+            }
+            lastTime = Math.toIntExact(sequence);
+        }
+        return battleList;
+    }
+
+    private String buildHistoryText(List<Object> battleList, String opt) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        Map<String, Integer> wins = new LinkedHashMap<>();
+        List<JSONObject> battles = new ArrayList<>();
+        int totalWins = 0;
+        for (Object value : battleList) {
+            if (!(value instanceof JSONObject battle)) {
+                continue;
+            }
+            battles.add(battle);
+            String mode = getMainBattleType(getBattleType(
+                    firstNonEmpty(battle, "mapName", "mapname"),
+                    firstNonEmpty(battle, "desc", "matchDesc"), opt));
+            counts.merge(mode, 1, Integer::sum);
+            if (isWin(battle)) {
+                totalWins++;
+                wins.merge(mode, 1, Integer::sum);
+            }
+        }
+
+        StringBuilder result = new StringBuilder("王者荣耀战绩\n");
+        result.append(String.format("一共%d局，胜利%d局，失败%d局，胜率%.1f%%\n",
+                battles.size(), totalWins, battles.size() - totalWins, percentage(totalWins, battles.size())));
+        appendModeSummary(result, "排位赛", counts, wins);
+        appendModeSummary(result, "匹配赛", counts, wins);
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+            if (!entry.getKey().equals("排位赛") && !entry.getKey().equals("匹配赛")) {
+                appendModeSummary(result, entry.getKey(), counts, wins);
+            }
+        }
+
+        result.append("\n逐局明细:\n");
+        if (battles.isEmpty()) {
+            result.append("暂无战绩\n");
+            return result.toString();
+        }
+        Map<Integer, String> heroNames = new HashMap<>();
+        for (int i = 0; i < battles.size(); i++) {
+            JSONObject battle = battles.get(i);
+            String hero = findHeroName(battle);
+            if (Judge.isEmpty(hero)) {
+                Integer heroId = integerValue(firstValue(battle, "heroId", "heroid"));
+                hero = resolveHeroName(heroId, heroNames);
+            }
+            String score = firstNonEmpty(battle, "gradeGame", "grade", "score");
+            String mvp = firstNonEmpty(battle, "mvp", "mvpFlag");
+            if (Judge.isEmpty(mvp) && Judge.isNotEmpty(firstNonEmpty(battle, "mvpUrlV3", "mvpUrl"))) {
+                mvp = "是";
+            }
+            String map = firstNonEmpty(battle, "mapName", "mapname");
+            String mode = getBattleType(map, firstNonEmpty(battle, "desc", "matchDesc"), opt);
+            result.append(String.format("%d. 时间:%s | 模式:%s | 英雄:%s | KDA:%d/%d/%d | 结果:%s",
+                    i + 1,
+                    valueOrUnknown(firstNonEmpty(battle, "gametime", "gameTime", "game_time", "createTime")),
+                    valueOrUnknown(mode), valueOrUnknown(hero),
+                    intValue(battle, "killcnt", "kills", "killCount"),
+                    intValue(battle, "deadcnt", "deaths", "deathCount"),
+                    intValue(battle, "assistcnt", "assists", "assistCount"),
+                    formatResult(battle)));
+            if (Judge.isNotEmpty(score)) result.append(" | 评分:").append(score);
+            if (Judge.isNotEmpty(mvp)) result.append(" | MVP:").append(mvp);
+            if (Judge.isNotEmpty(map) && !map.equals(mode)) result.append(" | 地图:").append(map);
+            String duration = firstNonEmpty(battle, "gameDuration", "duration", "gameTimeSec");
+            if (Judge.isNotEmpty(duration)) result.append(" | 时长:").append(duration);
+            result.append('\n');
+        }
+        return result.toString();
+    }
+
+    private void appendModeSummary(StringBuilder result, String mode,
+                                   Map<String, Integer> counts, Map<String, Integer> wins) {
+        int count = counts.getOrDefault(mode, 0);
+        int win = wins.getOrDefault(mode, 0);
+        result.append(String.format("%s:%d局，胜率%.1f%%\n", mode, count, percentage(win, count)));
+    }
+
+    private String findHeroName(JSONObject battle) {
+        String hero = firstNonEmpty(battle, "heroName", "heroCname", "hero_name", "cname");
+        if (Judge.isNotEmpty(hero)) return hero;
+        Object heroValue = battle.get("hero");
+        if (heroValue instanceof JSONObject heroObject) {
+            return firstNonEmpty(heroObject, "name", "cname", "heroName");
+        }
+        return null;
+    }
+
+    private String resolveHeroName(Integer heroId, Map<Integer, String> heroNames) {
+        if (heroId == null || heroId <= 0) return null;
+        if (heroNames.containsKey(heroId)) return heroNames.get(heroId);
+        try {
+            List<HeroData> heroes = req.getHeros();
+            if (heroes != null) {
+                for (HeroData hero : heroes) {
+                    if (hero != null && heroId.equals(hero.getEname())) {
+                        heroNames.put(heroId, hero.getCname());
+                        return hero.getCname();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.debug("resolve hero name failed: {}", heroId, e);
+        }
+        heroNames.put(heroId, String.valueOf(heroId));
+        return String.valueOf(heroId);
+    }
+
+    private boolean isWin(JSONObject battle) {
+        Object value = firstValue(battle, "gameresult", "gameResult", "result", "status");
+        if (value instanceof Boolean bool) return bool;
+        if (value instanceof Number number) return number.intValue() == 1;
+        String text = value == null ? "" : String.valueOf(value).toLowerCase(Locale.ROOT);
+        return "1".equals(text) || text.contains("胜") || text.contains("win");
+    }
+
+    private String formatResult(JSONObject battle) {
+        Object value = firstValue(battle, "gameresult", "gameResult", "result", "status");
+        if (value == null) return "未知";
+        if (isWin(battle)) return "胜利";
+        if (value instanceof Number || "0".equals(String.valueOf(value))) return "失败";
+        return String.valueOf(value);
+    }
+
+    private int intValue(JSONObject battle, String... keys) {
+        Integer value = integerValue(firstValue(battle, keys));
+        return value == null ? 0 : value;
+    }
+
+    private Integer integerValue(Object value) {
+        if (value instanceof Number number) return number.intValue();
+        if (value == null) return null;
+        try {
+            return Integer.valueOf(String.valueOf(value));
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    private Long longValue(JSONObject object, String... keys) {
+        Object value = firstValue(object, keys);
+        if (value instanceof Number number) return number.longValue();
+        if (value == null) return null;
+        try {
+            return Long.valueOf(String.valueOf(value));
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    private Object firstValue(JSONObject object, String... keys) {
+        for (String key : keys) {
+            if (object.containsKey(key) && object.get(key) != null) return object.get(key);
+        }
+        return null;
+    }
+
+    private String firstNonEmpty(JSONObject object, String... keys) {
+        for (String key : keys) {
+            String value = object.getString(key);
+            if (Judge.isNotEmpty(value)) return value;
+        }
+        return null;
+    }
+
+    private String stringValue(Object value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private String valueOrUnknown(String value) {
+        return Judge.isEmpty(value) ? "未知" : value;
+    }
+
+    private double percentage(int numerator, int denominator) {
+        return denominator <= 0 ? 0 : (double) numerator / denominator * 100;
+    }
+
+    private String defaultMessage(String message, String fallback) {
+        return Judge.isEmpty(message) ? fallback : message;
+    }
+
+    private ResponseEntity<String> textResponse(String body) {
+        MediaType mediaType = new MediaType("text", "plain", StandardCharsets.UTF_8);
+        return ResponseEntity.ok().contentType(mediaType).body(body);
+    }
+
+    private ResponseEntity<String> textError(String message) {
+        MediaType mediaType = new MediaType("text", "plain", StandardCharsets.UTF_8);
+        return ResponseEntity.badRequest().contentType(mediaType).body(defaultMessage(message, "查询失败"));
     }
 
     private String filterTo0Icon(String roleIcon) {
@@ -541,6 +830,14 @@ public class BattleController {
             else if (desc.contains("巅峰")) return "巅峰赛";
             else if (desc.contains("匹配")) return "匹配赛";
             else if (desc.contains("娱乐")) return "娱乐模式";
+        }
+
+        // 接口筛选条件可作为缺少地图/描述时的最后回退。
+        if (Judge.isNotEmpty(opt)) {
+            if (opt.startsWith("排位")) return "排位赛";
+            if (opt.startsWith("巅峰")) return "巅峰赛";
+            if (opt.startsWith("标准")) return "匹配赛";
+            if (opt.startsWith("娱乐")) return "娱乐模式";
         }
 
         return "其他模式";
